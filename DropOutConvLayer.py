@@ -8,9 +8,9 @@ from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
 class DropOutConvLayer(object):
-    def __init__(self, input, srng, filter_shape, is_training,p):
-        self.output = np.multiplyinput(input,srng.binomial(size=(filter_shape),p=p))
-
+    def __init__(self, input, srng, image_shape, is_training,p):
+        mask=srng.binomial(n=1,size=image_shape,p=p, dtype=theano.config.floatX)
+        self.output = T.switch(T.neq(is_training, 0), np.multiply(input,mask), np.multiply(input,p))
 
         def drop(input, srng, p= 0.4):
             """

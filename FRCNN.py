@@ -7,6 +7,7 @@ import numpy as np
 #import ConvReluLayer
 import DualConvReluLayer
 import DualConvReluAndConvLayer
+import DropOutConvLayer
 from theano.tensor.signal import downsample
 
 class FRCNN(object):
@@ -84,6 +85,20 @@ class FRCNN(object):
         )
 
 
+        self.dropout =  DropOutConvLayer.DropOutConvLayer(
+            input=self.pooled_5,
+            srng=rng_droput,
+            image_shape=(1, 320, 1, 1),
+            is_training=is_training,
+            p=pdrop
+        )
+
+
+
+
+
+
+
 is_training = T.iscalar('is_training')
 x = T.matrix('x')  # the data is presented as rasterized images
 y = T.ivector('y')  # the labels are presented as 1D vector of # [int] labels
@@ -108,9 +123,14 @@ classifier = FRCNN(
 img = Image.open(r'E:\dev\TesisFRwithCNN\TestRS\0000117\005-l.jpg')
 img = np.asarray(img, dtype=theano.config.floatX) / 256
 
+
+
+
+
+
 train_model = theano.function(
     [],
-      classifier.pooled_5,
+      classifier.dropout.output,
       givens={
           x: img,
           is_training: np.cast['int32'](1)
@@ -119,5 +139,14 @@ train_model = theano.function(
 )
 
 valTest = train_model()
+nNoCeros=np.count_nonzero(valTest)
+
+print "No NoCeros " + str(nNoCeros)
+
+
+
+
 valTest2 = train_model()
+
+
 print ("...")
