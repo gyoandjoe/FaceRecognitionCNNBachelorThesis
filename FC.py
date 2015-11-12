@@ -31,23 +31,27 @@ class FC(object):
                       which the labels lie
 
         """
+        initMean, initSD = 0, 0.01
+        numberWeights= numpy.prod((n_in,n_out))
+        normalDistributionValues = numpy.random.normal(initMean, initSD, numberWeights)
+        self.normalDistributionValues = normalDistributionValues.reshape((n_in,n_out))
         # start-snippet-1
         # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
         self.W = theano.shared(
-            value=numpy.zeros(
-                (n_in, n_out),
+            numpy.asarray(
+                self.normalDistributionValues,
                 dtype=theano.config.floatX
             ),
-            name='W',
+            name='WFC',
             borrow=True
         )
         # initialize the baises b as a vector of n_out 0s
         self.b = theano.shared(
-            value=numpy.zeros(
+            value=numpy.ones(
                 (n_out,),
                 dtype=theano.config.floatX
             ),
-            name='b',
+            name='bFC',
             borrow=True
         )
 
@@ -94,30 +98,6 @@ class FC(object):
         Note: we use the mean instead of the sum so that
               the learning rate is less dependent on the batch size
         """
-        # start-snippet-2
-        # y.shape[0]
-        # is (symbolically) the number of rows in y, i.e.,
-        # number of examples (call it n) in the minibatch
-        #
-        # T.arange(y.shape[0])
-        # is a symbolic vector which will contain
-        # [0,1,2,... n-1]
-        #
-        # T.log(self.p_y_given_x)
-        # is a matrix of
-        # Log-Probabilities (call it LP) with one row per example and
-        # one column per class
-        #
-        # LP[T.arange(y.shape[0]),y]
-        # is a vector
-        # v containing [LP[0,y[0]], LP[1,y[1]], LP[2,y[2]], ..., LP[n-1,y[n-1]]]
-        #
-        # and
-        #
-        # T.mean(LP[T.arange(y.shape[0]),y])
-        # isthe mean (across minibatch examples) of the elements in v,
-        # i.e., the mean log-likelihood across the minibatch.
-
         return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
         # end-snippet-2
 

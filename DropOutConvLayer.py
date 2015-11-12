@@ -19,15 +19,6 @@ class DropOutConvLayer(object):
 
             :type p: float or double between 0. and 1.
             :param p: p probability of NOT dropping out a unit or connection, therefore (1.-p) is the drop rate.
-
             """
             mask = srng.binomial(n=1, p=p, size=input.shape, dtype=theano.config.floatX)
             return input * mask
-
-
-
-
-
-
-
-

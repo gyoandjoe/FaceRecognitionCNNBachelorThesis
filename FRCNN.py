@@ -1,14 +1,15 @@
 __author__ = 'Giovanni'
 import theano
 import theano.tensor as T
-from PIL import Image
 import numpy as np
 
 #import ConvReluLayer
 import DualConvReluLayer
 import DualConvReluAndConvLayer
 import DropOutConvLayer
+import FC
 from theano.tensor.signal import downsample
+from theano import tensor
 
 class FRCNN(object):
     def __init__(self, rng_droput, is_training, img_input, pdrop=0.4):
@@ -84,69 +85,16 @@ class FRCNN(object):
             ignore_border=False
         )
 
-
-        self.dropout =  DropOutConvLayer.DropOutConvLayer(
-            input=self.pooled_5,
+        self.dropout = DropOutConvLayer.DropOutConvLayer(
+            input= tensor.reshape(self.pooled_5,(1,320)),
             srng=rng_droput,
-            image_shape=(1, 320, 1, 1),
+            image_shape=(1, 320),
             is_training=is_training,
             p=pdrop
         )
 
-
-
-
-
-
-
-is_training = T.iscalar('is_training')
-x = T.matrix('x')  # the data is presented as rasterized images
-y = T.ivector('y')  # the labels are presented as 1D vector of # [int] labels
-
-
-
-
-# dimensions are (height, width, channel)
-img_input = x.reshape((1, 1, 100, 100))
-
-
-#srng_droput =T.shared_randomstreams.RandomStreams(seed=12345)
-random_droput = np.random.RandomState(1234)
-rng_droput = T.shared_randomstreams.RandomStreams(random_droput.randint(999999))
-
-classifier = FRCNN(
-    rng_droput=rng_droput,
-    is_training=is_training,
-    img_input=img_input
-)
-
-img = Image.open(r'E:\dev\TesisFRwithCNN\TestRS\0000117\005-l.jpg')
-img = np.asarray(img, dtype=theano.config.floatX) / 256
-
-
-
-
-
-
-train_model = theano.function(
-    [],
-      classifier.dropout.output,
-      givens={
-          x: img,
-          is_training: np.cast['int32'](1)
-      },
-      on_unused_input='warn'
-)
-
-valTest = train_model()
-nNoCeros=np.count_nonzero(valTest)
-
-print "No NoCeros " + str(nNoCeros)
-
-
-
-
-valTest2 = train_model()
-
-
-print ("...")
+        self.FC = FC.FC(
+            input=self.dropout.output,
+            n_in=320,
+            n_out=10575
+        )

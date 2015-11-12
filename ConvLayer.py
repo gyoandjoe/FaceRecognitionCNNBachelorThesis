@@ -66,6 +66,7 @@ class ConvLayer(object):
             borrow=True
         )
 
+
         # convolve input feature maps with filters
         #return Tensor of filtered images, with shape ([number images,] [number filters,] image height, image width).
         """

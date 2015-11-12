@@ -1,7 +1,19 @@
 __author__ = 'Giovanni'
 import ConvReluLayer
 import numpy as np
-import Theano
+import cPickle
+import os
+
+
+#fLoaded = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL_0.pkl', 'rb')
+#setloaded = cPickle.load(fLoaded)
+#fLoaded.close()
+
+a = xrange(45)
+for item in a:
+    print item
+
+
 inputTest=np.array([[[[  2.87173394e-03,   5.74791489e-03,  -4.96293175e-03,
             7.12453776e-03,  -9.99887341e-03,   9.29196571e-03,
            -5.08244554e-03,   1.32072032e-02,   1.65764127e-02,
