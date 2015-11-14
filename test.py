@@ -5,9 +5,9 @@ import cPickle
 import os
 
 
-#fLoaded = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL_0.pkl', 'rb')
-#setloaded = cPickle.load(fLoaded)
-#fLoaded.close()
+fLoaded = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_0.pkl', 'rb')
+setloaded = cPickle.load(fLoaded)
+fLoaded.close()
 
 a = xrange(45)
 for item in a:

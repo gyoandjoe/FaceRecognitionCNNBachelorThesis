@@ -24,20 +24,33 @@ class PreprocessingCASIA(object):
 
 
 
-objPreprocessing = PreprocessingCASIA("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL.csv",'E:\\My Documents\BUAP\\Titulacion\\Tesis\\CASIA\\DataBase\\Normalized_Faces\\webface\\100\\')
+#objPreprocessing = PreprocessingCASIA("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL.csv",'E:\\My Documents\BUAP\\Titulacion\\Tesis\\CASIA\\DataBase\\Normalized_Faces\\webface\\100\\')
+objPreprocessing = PreprocessingCASIA("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL_RANDOM.csv",'E:\\My Documents\BUAP\\Titulacion\\Tesis\\CASIA\\DataBase\\Normalized_Faces\\webface\\100\\')
+
 print ("List loaded")
 
-StartIndex = 0
-bigBatchSize = 15000
-for index in xrange(5):
 
-    querytest = objPreprocessing.getBDPart(index * bigBatchSize, bigBatchSize)
-    print 'Image to Numpy -- OK : ' + str(index + 1)
-    f = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL_'+ str(index) + '.pkl', 'wb')
-    cPickle.dump(querytest, f)
+
+
+startIndex=12
+bigBatchSize = 26000
+for index in xrange(16):
+    if index < startIndex:
+        continue
+    print 'PROCESSING -- Images to Numpy Array, Index : ' + str(index)
+    query = objPreprocessing.getBDPart(index * bigBatchSize, bigBatchSize)
+    print '.............. OK: ' + str(index)
+    print 'PROCESSING -- Serialize Numpy Array to File, Index : ' + str(index)
+    f = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_'+ str(index) + '.pkl', 'w+b')
+    cPickle.dump(query, f, protocol=2)
+    #myf = open("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_FULL.pkl","ab+")
+    #tests= cPickle.dumps(query,  protocol=2)
+    #myf.write(tests)
+    #myf.close()
     f.close()
-    print 'ImageNumpy to File -- OK : ' + str(index + 1)
+    print '.............. OK: ' + str(index)
 
+#myf.close()
 #print "SALTO"
 #querytest2 = objPreprocessing.getBDPart(200,400)
 
