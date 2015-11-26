@@ -1,9 +1,9 @@
 __author__ = 'Giovanni'
-import ConvReluLayer
-import numpy as np
 import cPickle
-import os
 
+import numpy as np
+
+from Arquitecture import ConvReluLayer
 
 fLoaded = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_0.pkl', 'rb')
 setloaded = cPickle.load(fLoaded)

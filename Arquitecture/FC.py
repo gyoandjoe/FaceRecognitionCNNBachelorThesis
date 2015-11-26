@@ -112,3 +112,6 @@ class FC(object):
         """
         return T.mean(T.neq(self.y_pred, y))
 
+    def seeY(self, y):
+        return y
+

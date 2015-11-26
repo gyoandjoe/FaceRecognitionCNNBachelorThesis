@@ -1,11 +1,10 @@
 __author__ = 'Giovanni'
-import ConvReluLayer
 import theano
 import theano.tensor as T
-import pylab
 from PIL import Image
 import numpy as np
-from decimal import Decimal
+
+import ConvReluLayer
 
 x = T.matrix('x')   # the data is presented as rasterized images
 y = T.ivector('y')  # the labels are presented as 1D vector of
@@ -21,7 +20,7 @@ img = np.asarray(img, dtype=theano.config.floatX) / 256
 img_input = x.reshape((1, 1, img.shape[0],img.shape[1]))
 #DEBUG np.savetxt('img_input.csv', img,'%5.4f' ,delimiter=',')
 
-layer0=ConvReluLayer.ConvReluLayer(
+layer0= ConvReluLayer.ConvReluLayer(
     input=img_input,
     filter_shape=(32, 1, 3, 3),
     image_shape=(1, 1, img.shape[0],img.shape[1])

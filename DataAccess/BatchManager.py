@@ -1,5 +1,9 @@
 __author__ = 'Giovanni'
 import DataLoader
+import theano.tensor as T
+import theano
+import LoadDataFunctions
+import numpy as np
 
 class BatchManager(object):
     def __init__(self, batchSize, superBatchSize,fileReferenceData, basePath):
@@ -8,10 +12,15 @@ class BatchManager(object):
         :param superBatchSize: numero de registros por cada super Batch
         :return:
         """
+        self.noTotalBatchesForAllSuperBatches = -1
         self.noValidBatchesInSuperBatch = -1
         self.NoTotalSuperBatches = -1
         self.dataLoader = None
+        self.batch = None
         self.batchSize = batchSize
+        self.currentX = None
+        #self.currentYFloats = None
+        self.currentY = None
         if ((superBatchSize % batchSize) == 0):
             #cada noValidBatchesInSuperBatch se tienen que cargar un nuevo dataSet
             self.noValidBatchesInSuperBatch = superBatchSize / batchSize
@@ -19,21 +28,47 @@ class BatchManager(object):
             self.NoTotalSuperBatches = self.dataLoader.no_total_batches
             self.noTotalBatchesForAllSuperBatches=self.noValidBatchesInSuperBatch * self.dataLoader.no_total_batches
         else:
-            print "Error"
+            print "Batch size no compatible"
     def getBatchByIndex(self, indexBatch):
         """
         :param indexBatch: es un numero que puede ser muy grande, ya que estos batches estan contenidos en los superbatches, y su numeracion atraviesa estos super batches, debe comenzar en 0 y no en 1
-
         :return:
         """
-        batch = None
+
+         #T.matrix('batch')
         if (indexBatch < self.noTotalBatchesForAllSuperBatches):
             superBatchIndexRequested = indexBatch // self.noValidBatchesInSuperBatch
-            noBatchesUntilSuperBatchRequested = superBatchIndexRequested * self.noValidBatchesInSuperBatch
-            offsetBatchIndex = indexBatch - noBatchesUntilSuperBatchRequested
-            batch = self.dataLoader.getDataSetByBatchIndex(superBatchIndexRequested)[offsetBatchIndex * self.batchSize: (self.batchSize + 1) * self.batchSize]
+            #noBatchesUntilSuperBatchRequested = superBatchIndexRequested * self.noValidBatchesInSuperBatch
+            #offsetBatchIndex = indexBatch - noBatchesUntilSuperBatchRequested
+            self.batch = self.getTensorDataSet(superBatchIndexRequested)
 
-        return batch
+            #batch =(batch[0],batch[1][offsetBatchIndex * self.batchSize: (offsetBatchIndex + 1) * self.batchSize])
+        else:
+            print "Index batch requested out of range"
+        return self.batch
 
+    def UpdateCurrentXAdY(self, indexSuperBatch):
+        if (self.currentX == None and self.currentY ==None):
+            self.currentX,self.currentY=LoadDataFunctions.just_shared_dataset(self.dataLoader.getDataSetByBatchIndex(indexSuperBatch))
+        else:
+            rawX,rawY=self.dataLoader.getDataSetByBatchIndex(indexSuperBatch)
+            if (self.dataLoader.IsNewDataSet == True):
+                self.currentX.set_value(np.asarray(rawX,dtype=theano.config.floatX),borrow=True)
+                self.currentY.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
+                #self.currentYFloats.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
+                #self.currentY=T.cast(self.currentYFloats, 'int32')
 
+    def getTensorDataSet(self, superBatchIndexRequested):
+        '''
+        Primero returna X y despues Y, retorna arrays Tensor de theno
+        '''
+        rawData=self.dataLoader.getDataSetByBatchIndex(superBatchIndexRequested)
+        return LoadDataFunctions.shared_dataset(rawData)
 
+    def getRawDataSet(self, superBatchIndexRequested):
+        return self.dataLoader.getDataSetByBatchIndex(superBatchIndexRequested)
+
+    def change(self):
+        self.currentX+=20
+    def __unicode__(self,index):
+        return unicode(self.getBatchByIndex(index))

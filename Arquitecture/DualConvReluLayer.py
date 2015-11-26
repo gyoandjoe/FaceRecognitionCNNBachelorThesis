@@ -1,9 +1,9 @@
 # coding=utf-8
 __author__ = 'Giovanni'
-import ConvLayer
-import ConvReluLayer
+from Arquitecture import ConvReluLayer
 
-class DualConvReluAndConvLayer(object):
+
+class DualConvReluLayer(object):
     def __init__(self, input, filter_shape, image_shape):
 
         assert image_shape[1] == filter_shape[1]
@@ -28,7 +28,7 @@ class DualConvReluAndConvLayer(object):
 
         #No input feature maps  o deep de cada imagen
         d1 = no_filters_l0
-        self.layer1 = ConvLayer.ConvLayer(
+        self.layer1 = ConvReluLayer.ConvReluLayer(
             input=self.layer0.output,
             filter_shape=(nfilters_l1, d1, weight_filter, height_filter),
             image_shape=(noimages, d1, heightimage, weightimage)
