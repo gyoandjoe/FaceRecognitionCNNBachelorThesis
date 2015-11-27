@@ -13,11 +13,6 @@ class PreprocessingCASIA(object):
         self.prefixFullFile = prefixFullFile
 
     def getBDPart(self, startIndex, sizeBatch):
-        #if ((startIndex + sizeBatch) > sizeBatch):
-
-
-
-
         contador=0
 
         data=  self.dataList[startIndex:(startIndex + sizeBatch),:]
@@ -29,7 +24,6 @@ class PreprocessingCASIA(object):
             DataX[contador] = np.asarray(Image.open(self.basePath + fileInfo[1] + '\\' + fileInfo[2]), dtype=np.float64) / 256
             DataY[contador] = fileInfo[0]
             contador += 1
-            #print fileInfo[0] + " " + fileInfo[2]
         return (DataX,DataY)
 
 
@@ -48,11 +42,6 @@ class PreprocessingCASIA(object):
         print ("Serialize DataSet -- OK")
 
 #objPreprocessing = PreprocessingCASIA("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\CASIAFULL.csv",'E:\\My Documents\BUAP\\Titulacion\\Tesis\\CASIA\\DataBase\\Normalized_Faces\\webface\\100\\')
-
-
-
-
-
 
 
     #myf = open("E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_FULL.pkl","ab+")

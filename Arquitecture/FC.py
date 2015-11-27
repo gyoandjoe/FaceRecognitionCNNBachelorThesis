@@ -98,8 +98,13 @@ class FC(object):
         Note: we use the mean instead of the sum so that
               the learning rate is less dependent on the batch size
         """
-        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
+        return -T.mean(T.log(self.p_y_given_x) [T.arange(y.shape[0]), y])
+
         # end-snippet-2
+
+    def negative_log_likelihoodTest(self,y):
+        return -T.mean(T.log(self.p_y_given_x) [T.arange(y.shape[0]), y])
+        #return T.log(self.p_y_given_x) # [T.arange(y.shape[0]), y]
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch

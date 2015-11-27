@@ -11,7 +11,7 @@ import numpy as np
 from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
 v = theano.__version__
-batch_size = 10
+batch_size = 100
 is_training = T.iscalar('is_training')
 
 index = T.lscalar()
@@ -47,7 +47,7 @@ theano.config.exception_verbosity='high'
 
 #ssh = theano.shared(dataXNp,borrow=True)
 
-bmTrainSet.UpdateCurrentXAdY(0)
+bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
 
 train_models1 = theano.function(
     [index],
@@ -63,7 +63,13 @@ train_models1 = theano.function(
 )
 dataXNp0 = train_models1(0)
 dataXNp1 = train_models1(1)
-bmTrainSet.UpdateCurrentXAdY(1)
+dataXNp1_1 = train_models1(2)
+bmTrainSet.UpdateCurrentXAdYByBatchIndex(77)
+if (bmTrainSet.dataLoader.IsNewDataSet == True):
+    print "Nuevos datos"
+else:
+    print "Los mismos datos"
+
 dataXNp2 = train_models1(0)
 dataXNp3 = train_models1(1)
 dataXNp4 = train_models1(2)

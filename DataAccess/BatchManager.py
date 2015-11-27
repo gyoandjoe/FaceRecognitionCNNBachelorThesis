@@ -21,31 +21,31 @@ class BatchManager(object):
         self.currentX = None
         #self.currentYFloats = None
         self.currentY = None
-        if ((superBatchSize % batchSize) == 0):
-            #cada noValidBatchesInSuperBatch se tienen que cargar un nuevo dataSet
-            self.noValidBatchesInSuperBatch = superBatchSize / batchSize
-            self.dataLoader = DataLoader.DataLoader(fileReferenceData, basePath)
-            self.NoTotalSuperBatches = self.dataLoader.no_total_batches
-            self.noTotalBatchesForAllSuperBatches=self.noValidBatchesInSuperBatch * self.dataLoader.no_total_batches
-        else:
-            print "Batch size no compatible"
-    def getBatchByIndex(self, indexBatch):
+
+        #cada noValidBatchesInSuperBatch se tienen que cargar un nuevo dataSet
+        self.noValidBatchesInSuperBatch = superBatchSize // batchSize
+        if ((superBatchSize % batchSize) != 0):
+            self.noValidBatchesInSuperBatch=self.noValidBatchesInSuperBatch + 1
+        self.dataLoader = DataLoader.DataLoader(fileReferenceData, basePath)
+        self.NoTotalSuperBatches = self.dataLoader.no_total_batches
+        self.noTotalBatchesForAllSuperBatches=self.noValidBatchesInSuperBatch * self.dataLoader.no_total_batches
+
+    def UpdateCurrentXAdYByBatchIndex(self, indexBatch):
         """
         :param indexBatch: es un numero que puede ser muy grande, ya que estos batches estan contenidos en los superbatches, y su numeracion atraviesa estos super batches, debe comenzar en 0 y no en 1
         :return:
         """
 
-         #T.matrix('batch')
         if (indexBatch < self.noTotalBatchesForAllSuperBatches):
             superBatchIndexRequested = indexBatch // self.noValidBatchesInSuperBatch
+            self.UpdateCurrentXAdY(superBatchIndexRequested)
             #noBatchesUntilSuperBatchRequested = superBatchIndexRequested * self.noValidBatchesInSuperBatch
             #offsetBatchIndex = indexBatch - noBatchesUntilSuperBatchRequested
-            self.batch = self.getTensorDataSet(superBatchIndexRequested)
-
+            #self.batch = self.getTensorDataSet(superBatchIndexRequested)
             #batch =(batch[0],batch[1][offsetBatchIndex * self.batchSize: (offsetBatchIndex + 1) * self.batchSize])
         else:
             print "Index batch requested out of range"
-        return self.batch
+
 
     def UpdateCurrentXAdY(self, indexSuperBatch):
         if (self.currentX == None and self.currentY ==None):
