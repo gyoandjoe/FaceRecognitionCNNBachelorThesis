@@ -10,6 +10,7 @@ import numpy as np
 from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
 import matplotlib.pyplot as plt
+import LogManager.LogManager
 
 theano.config.exception_verbosity='high'
 
@@ -20,6 +21,7 @@ class FaceRecognition_CNN(object):
         ############################################# Variables definition #########################################
         ############################################################################################################
 
+        self.Lm = LogManager.LogManager.LogManager("","","E:\\dev\\TesisTest\\logManager\\testgraph.csv","ok")
         is_training = T.iscalar('is_training')
 
         x = T.tensor3('x')  # the data is presented as rasterized images
@@ -109,9 +111,12 @@ class FaceRecognition_CNN(object):
         )
 
     def InitializeDataVariables(self):
-        self.no_total_rows_in_trainSet = 592148
-        self.no_total_rows_in_testSet = 197382
-        self.no_total_rows_in_validationSet = 197382
+        #self.no_total_rows_in_trainSet = 592148
+        #self.no_total_rows_in_testSet = 197382
+        #self.no_total_rows_in_validationSet = 197382
+        self.no_total_rows_in_trainSet = 7800
+        self.no_total_rows_in_testSet = 2600
+        self.no_total_rows_in_validationSet = 2600
 
         self.no_rows_in_train_superBatch =  7800
         self.no_rows_in_test_superBatch = 2600
@@ -158,6 +163,8 @@ class FaceRecognition_CNN(object):
         ############################################################################################################
 
         print '... training'
+        #    LogManager.LogManager("","","E:\\dev\\TesisTest\\logManager\\testgraph.csv","ok")
+
 
         n_epochs = 200
             # early-stopping parameters
@@ -165,7 +172,7 @@ class FaceRecognition_CNN(object):
         patience_increase = 2  # wait this much longer when a new best is found
         improvement_threshold = 0.995  #(0 to 1) a relative improvement of this much is
                                            # considered significant
-        validation_frequency = min(self.n_train_batches, patience / 2)
+        validation_frequency = 1 #min(self.n_train_batches, patience / 2)
                                           # go through this many
                                           # minibatche before checking the network
                                           # on the validation set; in this case we
@@ -248,7 +255,9 @@ class FaceRecognition_CNN(object):
                                 (epoch, minibatch_index + 1, self.n_train_batches,
                                 test_score * 100.))
 
-                    #Se guardan de performance
+                    #Se guardan logs de performance
+
+                    self.Lm.savePerformanceData(cost_ij,this_validation_loss,test_score,epoch,minibatch_index,iter,best_validation_loss,best_iter,done_looping,patience )
 
 
                 minibatchTrain_index_with_offset =  minibatchTrain_index_with_offset + 1
