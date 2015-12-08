@@ -9,64 +9,37 @@ import numpy as np
 
 from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
+import matplotlib.pyplot as plt
 
 theano.config.exception_verbosity='high'
 
 class FaceRecognition_CNN(object):
-    def __init__(self):
+
+    def __init__(self, learning_rate = 0.01,pbatch_size = 15):
         ############################################################################################################
         ############################################# Variables definition #########################################
         ############################################################################################################
+
         is_training = T.iscalar('is_training')
+
         x = T.tensor3('x')  # the data is presented as rasterized images
         y = T.ivector('y')  # the labels are presented as 1D vector of # [int] labels
         # allocate symbolic variables for the data
         index = T.lscalar()  # index to a [mini]batch
-
-        self.no_total_rows_in_trainSet = 592148
-        self.no_total_rows_in_testSet = 197382
-        self.no_total_rows_in_validationSet = 197382
-
-        self.no_rows_in_train_superBatch =  7800
-        self.no_rows_in_test_superBatch = 2600
-        self.no_rows_in_validation_superBatch = 2600
-        self.batch_size = 15
-
-        learning_rate = 0.01
-        self.minibatchValidation_index_with_offset = 0
-        self.minibatchTest_index_with_offset = 0
-
-        # dimensions are (height, width, channel)
-        img_input = x.reshape((self.batch_size, 1, 100, 100))
-
         #srng_droput =T.shared_randomstreams.RandomStreams(seed=12345)
         random_droput = np.random.RandomState(1234)
         rng_droput = T.shared_randomstreams.RandomStreams(random_droput.randint(999999))
 
-        self.n_train_batches =  self.no_total_rows_in_trainSet // self.batch_size
-        if (self.no_total_rows_in_trainSet % self.batch_size != 0):
-            self.n_train_batches = self.n_train_batches + 1
+        self.batch_size = pbatch_size
+        # dimensions are (height, width, channel)
+        img_input = x.reshape((self.batch_size, 1, 100, 100))
 
-        self.n_test_batches = self.no_total_rows_in_testSet // self.batch_size
-        if (self.no_total_rows_in_testSet % self.batch_size != 0):
-            self.n_test_batches = self.n_test_batches + 1
-
-        self.n_valid_batches = self.no_total_rows_in_validationSet // self.batch_size
-        if (self.no_total_rows_in_validationSet % self.batch_size != 0):
-            self.n_valid_batches=self.n_valid_batches + 1
+        self.InitializeDataVariables()
 
         ############################################################################################################
         ########################################## Load DATASET ####################################################
         ############################################################################################################
-
-        self.bmTrainSet = BatchManager(self.batch_size,self.no_rows_in_train_superBatch,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\TrainRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randTrain")
-        self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
-        self.bmTestSet = BatchManager(self.batch_size,self.no_rows_in_test_superBatch,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\TestRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randTest")
-        self.bmTestSet.UpdateCurrentXAdYByBatchIndex(0)
-        self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\ValidRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randValid")
-        self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
-
-
+        self.LoadDataSet()
         #############################################################################################################
         ########################################### Build MODEL #####################################################
         #############################################################################################################
@@ -79,7 +52,6 @@ class FaceRecognition_CNN(object):
             pdrop=0.4
         )
         cost = classifier.FC.negative_log_likelihood(y)
-
 
         self.test_model = theano.function(
             inputs=[index],
@@ -136,7 +108,51 @@ class FaceRecognition_CNN(object):
               #allow_input_downcast=True
         )
 
-    def Train(self):
+    def InitializeDataVariables(self):
+        self.no_total_rows_in_trainSet = 592148
+        self.no_total_rows_in_testSet = 197382
+        self.no_total_rows_in_validationSet = 197382
+
+        self.no_rows_in_train_superBatch =  7800
+        self.no_rows_in_test_superBatch = 2600
+        self.no_rows_in_validation_superBatch = 2600
+
+        self.minibatchValidation_index_with_offset = 0
+        self.minibatchTest_index_with_offset = 0
+
+
+        self.n_train_batches =  self.no_total_rows_in_trainSet // self.batch_size
+        if (self.no_total_rows_in_trainSet % self.batch_size != 0):
+            self.n_train_batches = self.n_train_batches + 1
+
+        self.n_test_batches = self.no_total_rows_in_testSet // self.batch_size
+        if (self.no_total_rows_in_testSet % self.batch_size != 0):
+            self.n_test_batches = self.n_test_batches + 1
+
+        self.n_valid_batches = self.no_total_rows_in_validationSet // self.batch_size
+        if (self.no_total_rows_in_validationSet % self.batch_size != 0):
+            self.n_valid_batches=self.n_valid_batches + 1
+
+    def LoadDataSet(self,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\"):
+
+        self.bmTrainSet = BatchManager(self.batch_size, self.no_rows_in_train_superBatch, basePathOfReferenceCSVs + "TrainRandReference.csv",basePathOfDataSet+"randTrain")
+        self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
+        self.bmTestSet = BatchManager(self.batch_size,self.no_rows_in_test_superBatch, basePathOfReferenceCSVs + "TestRandReference.csv",basePathOfDataSet+"randTest")
+        self.bmTestSet.UpdateCurrentXAdYByBatchIndex(0)
+        self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
+        self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
+
+    def Train(self,restoreBackup = False):
+
+        createBackup = False
+        if (restoreBackup == True):
+            restored_epoch = 0
+            restored_minibatch_index =0
+            restored_best_validation_loss=0
+            restored_best_iter=0
+            restored_done_looping=0
+            restored_patience=0
+
         ############################################################################################################
         ############################################ TRAINING ######################################################
         ############################################################################################################
@@ -146,9 +162,8 @@ class FaceRecognition_CNN(object):
         n_epochs = 200
             # early-stopping parameters
         patience = 10000  # look as this many examples regardless
-        patience_increase = 2  # wait this much longer when a new best is
-                                # found
-        improvement_threshold = 0.995  # a relative improvement of this much is
+        patience_increase = 2  # wait this much longer when a new best is found
+        improvement_threshold = 0.995  #(0 to 1) a relative improvement of this much is
                                            # considered significant
         validation_frequency = min(self.n_train_batches, patience / 2)
                                           # go through this many
@@ -159,21 +174,28 @@ class FaceRecognition_CNN(object):
         best_validation_loss = np.inf
         best_iter = 0
         test_score = 0.
-        start_time = timeit.default_timer()
 
         epoch = 0
         done_looping = False
 
-
+        start_time = timeit.default_timer()
 
 
         while (epoch < n_epochs) and (not done_looping):
             epoch = epoch + 1
             minibatchTrain_index_with_offset=0
 
+            if restoreBackup == True:
+                if epoch !=  restored_epoch:
+                    continue
+
             for minibatch_index in xrange(self.n_train_batches):
 
-                #No of training batches including epochs
+                if restoreBackup == True:
+                    if minibatch_index !=  restored_minibatch_index:
+                        continue
+
+                #No of training batches processed including epochs
                 iter = (epoch - 1) * self.n_train_batches + minibatch_index
 
                 #Each 100 iter we print the number of iter
@@ -183,10 +205,12 @@ class FaceRecognition_CNN(object):
                 self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(minibatch_index)
                 if (self.bmTrainSet.dataLoader.IsNewDataSet == True):
                     minibatchTrain_index_with_offset = 0
+                    #if (createBackup == True):
+                        #save epoch, minibatch_index, best_validation_loss, best_iter, done_looping, patience
 
                 cost_ij = self.train_model(minibatchTrain_index_with_offset)
 
-
+                #Se evalua cada cierto numero de training batches
                 if (iter + 1) % validation_frequency == 0:
                     # compute zero-one loss on validation set
                     validation_losses = [self.do_validation(i) for i
@@ -202,6 +226,9 @@ class FaceRecognition_CNN(object):
                     # if we got the best validation score until now
                     if this_validation_loss < best_validation_loss:
                         #improve patience if loss improvement is good enough
+                        #Si mejora bastante todavia no se ha acercado al minimo global entonces tratamos de incrementar la paciencia,
+                        # pero si no mejora bastante significa que el mejoramiento es poco por lo tanto esta muy cerca del minimo
+                        # y no necesitamos actualizar la paciencia (que es el numero de batches procesados)
                         if this_validation_loss < best_validation_loss * improvement_threshold:
                             patience = max(patience, iter * patience_increase)
 
@@ -221,14 +248,16 @@ class FaceRecognition_CNN(object):
                                 (epoch, minibatch_index + 1, self.n_train_batches,
                                 test_score * 100.))
 
+                    #Se guardan de performance
+
 
                 minibatchTrain_index_with_offset =  minibatchTrain_index_with_offset + 1
 
-                """
+                #Si sobrepasamos o llegamos a la paciencia maxima, detenemos el entrenamiento
                 if patience <= iter:
                     done_looping = True
                     break
-                """
+
 
 
         end_time = timeit.default_timer()
