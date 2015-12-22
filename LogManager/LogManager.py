@@ -15,6 +15,6 @@ class LogManager(object):
 
     def savePerformanceData(self,cost,validation_loss,test_score,epoch, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience):
         csvPerformanceFile =  open(self.csvPerformanceFileName, 'ab')
-        csvwriter = csv.writer(csvPerformanceFile, delimiter=',',quoting=csv.QUOTE_MINIMAL)
+        csvwriter = csv.writer(csvPerformanceFile, delimiter=',',quoting=csv.QUOTE_ALL)
         csvwriter.writerow([epoch, cost,validation_loss,test_score,epoch, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience ])
         csvPerformanceFile.close()

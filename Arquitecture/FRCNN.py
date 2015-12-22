@@ -21,6 +21,7 @@ class FRCNN(object):
             image_shape=(noImages, 1, 100, 100)
         )
 
+
         # downsample each feature map individually, using maxpooling
         self.pooled_1 = downsample.max_pool_2d(
             input=self.Conv_11_12.output,

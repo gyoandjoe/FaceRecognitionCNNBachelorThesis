@@ -11,17 +11,32 @@ from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
 import matplotlib.pyplot as plt
 import LogManager.LogManager
+import time
 
 theano.config.exception_verbosity='high'
 
 class FaceRecognition_CNN(object):
 
-    def __init__(self, learning_rate = 0.01,pbatch_size = 15):
+    #los parametros de no_rows_in_train_superBatch, no_rows_in_test_superBatch, no_rows_in_validation_superBatch estan pensados
+    #para ocupar entre todos mas de 2GB
+    def __init__(self, learning_rate = 0.001,batch_size = 20, no_total_rows_in_trainSet=592148, no_total_rows_in_testSet=197382,no_total_rows_in_validationSet=197382,no_rows_in_train_superBatch=15600 ,no_rows_in_test_superBatch=5200,no_rows_in_validation_superBatch=5200,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",csvPerformanceFileName="E:\\dev\\TesisTest\\logManager\\testgraph.csv"):
+
+        #self.no_total_rows_in_trainSet = 592148
+        #self.no_total_rows_in_testSet = 197382
+        #self.no_total_rows_in_validationSet = 197382
+
         ############################################################################################################
         ############################################# Variables definition #########################################
         ############################################################################################################
+        self.no_total_rows_in_trainSet = no_total_rows_in_trainSet
+        self.no_total_rows_in_testSet = no_total_rows_in_testSet
+        self.no_total_rows_in_validationSet = no_total_rows_in_validationSet
 
-        self.Lm = LogManager.LogManager.LogManager("","","E:\\dev\\TesisTest\\logManager\\testgraph.csv","ok")
+        self.no_rows_in_train_superBatch =  no_rows_in_train_superBatch #7800
+        self.no_rows_in_test_superBatch = no_rows_in_test_superBatch #2600
+        self.no_rows_in_validation_superBatch = no_rows_in_validation_superBatch #2600
+
+        self.Lm = LogManager.LogManager.LogManager("","",csvPerformanceFileName,"ok")
         is_training = T.iscalar('is_training')
 
         x = T.tensor3('x')  # the data is presented as rasterized images
@@ -32,7 +47,7 @@ class FaceRecognition_CNN(object):
         random_droput = np.random.RandomState(1234)
         rng_droput = T.shared_randomstreams.RandomStreams(random_droput.randint(999999))
 
-        self.batch_size = pbatch_size
+        self.batch_size = batch_size
         # dimensions are (height, width, channel)
         img_input = x.reshape((self.batch_size, 1, 100, 100))
 
@@ -41,7 +56,7 @@ class FaceRecognition_CNN(object):
         ############################################################################################################
         ########################################## Load DATASET ####################################################
         ############################################################################################################
-        self.LoadDataSet()
+        self.LoadDataSet(basePathOfReferenceCSVs,basePathOfDataSet )
         #############################################################################################################
         ########################################### Build MODEL #####################################################
         #############################################################################################################
@@ -53,7 +68,7 @@ class FaceRecognition_CNN(object):
             noImages=self.batch_size,
             pdrop=0.4
         )
-        cost = classifier.FC.negative_log_likelihood(y)
+
 
         self.test_model = theano.function(
             inputs=[index],
@@ -76,6 +91,7 @@ class FaceRecognition_CNN(object):
         )
 
         # create a list of all model parameters to be fit by gradient descent
+        cost = classifier.FC.negative_log_likelihood(y)
         params = classifier.FC.params + classifier.Conv_51_52.layer0.params + classifier.Conv_51_52.layer1.params + classifier.Conv_41_42.layer0.params + classifier.Conv_41_42.layer1.params + classifier.Conv_31_32.layer0.params + classifier.Conv_31_32.layer1.params + classifier.Conv_21_22.layer0.params + classifier.Conv_21_22.layer1.params + classifier.Conv_11_12.layer0.params + classifier.Conv_11_12.layer1.params
 
         # create a list of gradients for all model parameters
@@ -111,20 +127,10 @@ class FaceRecognition_CNN(object):
         )
 
     def InitializeDataVariables(self):
-        #self.no_total_rows_in_trainSet = 592148
-        #self.no_total_rows_in_testSet = 197382
-        #self.no_total_rows_in_validationSet = 197382
-        self.no_total_rows_in_trainSet = 7800
-        self.no_total_rows_in_testSet = 2600
-        self.no_total_rows_in_validationSet = 2600
 
-        self.no_rows_in_train_superBatch =  7800
-        self.no_rows_in_test_superBatch = 2600
-        self.no_rows_in_validation_superBatch = 2600
 
         self.minibatchValidation_index_with_offset = 0
         self.minibatchTest_index_with_offset = 0
-
 
         self.n_train_batches =  self.no_total_rows_in_trainSet // self.batch_size
         if (self.no_total_rows_in_trainSet % self.batch_size != 0):
@@ -138,7 +144,9 @@ class FaceRecognition_CNN(object):
         if (self.no_total_rows_in_validationSet % self.batch_size != 0):
             self.n_valid_batches=self.n_valid_batches + 1
 
-    def LoadDataSet(self,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\"):
+    def LoadDataSet(self,basePathOfReferenceCSVs,basePathOfDataSet ):
+
+
 
         self.bmTrainSet = BatchManager(self.batch_size, self.no_rows_in_train_superBatch, basePathOfReferenceCSVs + "TrainRandReference.csv",basePathOfDataSet+"randTrain")
         self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
@@ -147,7 +155,7 @@ class FaceRecognition_CNN(object):
         self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
         self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
 
-    def Train(self,restoreBackup = False):
+    def Train(self,restoreBackup = False,validation_frequency = 100, trainigin_info_frequency = 1000):
 
         createBackup = False
         if (restoreBackup == True):
@@ -172,7 +180,7 @@ class FaceRecognition_CNN(object):
         patience_increase = 2  # wait this much longer when a new best is found
         improvement_threshold = 0.995  #(0 to 1) a relative improvement of this much is
                                            # considered significant
-        validation_frequency = 1 #min(self.n_train_batches, patience / 2)
+        validation_frequency = validation_frequency #min(self.n_train_batches, patience / 2)
                                           # go through this many
                                           # minibatche before checking the network
                                           # on the validation set; in this case we
@@ -185,7 +193,9 @@ class FaceRecognition_CNN(object):
         epoch = 0
         done_looping = False
 
+
         start_time = timeit.default_timer()
+
 
 
         while (epoch < n_epochs) and (not done_looping):
@@ -195,7 +205,7 @@ class FaceRecognition_CNN(object):
             if restoreBackup == True:
                 if epoch !=  restored_epoch:
                     continue
-
+            t_test_start = time.time()
             for minibatch_index in xrange(self.n_train_batches):
 
                 if restoreBackup == True:
@@ -205,9 +215,6 @@ class FaceRecognition_CNN(object):
                 #No of training batches processed including epochs
                 iter = (epoch - 1) * self.n_train_batches + minibatch_index
 
-                #Each 100 iter we print the number of iter
-                if iter % 100 == 0:
-                    print 'training @ iter = ', iter
 
                 self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(minibatch_index)
                 if (self.bmTrainSet.dataLoader.IsNewDataSet == True):
@@ -215,7 +222,15 @@ class FaceRecognition_CNN(object):
                     #if (createBackup == True):
                         #save epoch, minibatch_index, best_validation_loss, best_iter, done_looping, patience
 
+                #Each 100 iter we print the number of iter
+                if iter % trainigin_info_frequency == 0:
+                    t_test_end= time.time()
+                    secunds_test = t_test_end - t_test_start
+                    print("Looping %d times(iters) took %f seconds(%f hours) with %d examples processed" % (iter, secunds_test,secunds_test//60, iter * self.batch_size ))
+
                 cost_ij = self.train_model(minibatchTrain_index_with_offset)
+
+
 
                 #Se evalua cada cierto numero de training batches
                 if (iter + 1) % validation_frequency == 0:
@@ -285,7 +300,6 @@ class FaceRecognition_CNN(object):
         self.minibatchValidation_index_with_offset = self.minibatchValidation_index_with_offset + 1
         return self.validate_model(self.minibatchValidation_index_with_offset -1)
 
-
     def do_Test(self,indexBatch):
         self.bmTestSet.UpdateCurrentXAdYByBatchIndex(indexBatch)
         if (self.bmTestSet.dataLoader.IsNewDataSet == True):
@@ -305,10 +319,25 @@ def experiment(state, channel):
 ############################################################################
 ############################## TESTING #####################################
 ############################################################################
+#print theano.config.optimizer
+
+fr = FaceRecognition_CNN(
+    batch_size = 20,
+    no_total_rows_in_trainSet=11700,
+    no_total_rows_in_testSet= 3900,
+    no_total_rows_in_validationSet=3900,
+    no_rows_in_train_superBatch=3900,
+    no_rows_in_test_superBatch=1300,
+    no_rows_in_validation_superBatch=1300,
+    basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
+    basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
+    csvPerformanceFileName="E:\\dev\\TesisTest\\logManager\\testgraph.csv"
+    )
 
 
-fr = FaceRecognition_CNN()
-fr.Train()
+
+
+fr.Train(validation_frequency=5000, trainigin_info_frequency = 10)
 print ("OK")
 """
 valTest = train_model()

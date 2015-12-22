@@ -60,7 +60,7 @@ class BatchManager(object):
 
     def getTensorDataSet(self, superBatchIndexRequested):
         '''
-        Primero returna X y despues Y, retorna arrays Tensor de theno
+        Primero retorna X y despues Y, retorna array's Tensor de theno
         '''
         rawData=self.dataLoader.getDataSetByBatchIndex(superBatchIndexRequested)
         return LoadDataFunctions.shared_dataset(rawData)

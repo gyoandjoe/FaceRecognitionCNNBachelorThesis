@@ -55,6 +55,14 @@ class FC(object):
             borrow=True
         )
 
+        self.bFast = theano.shared(
+            value=numpy.ones(
+                (n_out,),
+                dtype=theano.config.floatX
+            ),
+            name='bFC',
+            borrow=True
+        )
         # Softmax regression (or multinomial logistic regression) is a generalization of logistic regression to the case where we want to handle multiple classes
         # Softmax regression allows us to handle }  where K  is the number of classes.
         # symbolic expression for computing the matrix of class-membership
