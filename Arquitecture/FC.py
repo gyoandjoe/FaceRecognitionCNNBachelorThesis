@@ -5,6 +5,7 @@ import numpy
 
 import theano
 import theano.tensor as T
+import numpy as np
 
 class FC(object):
     """Multi-class Logistic Regression Class
@@ -15,7 +16,7 @@ class FC(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, input, n_in, n_out,title):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
@@ -31,6 +32,7 @@ class FC(object):
                       which the labels lie
 
         """
+        self.title=title
         initMean, initSD = 0, 0.01
         numberWeights= numpy.prod((n_in,n_out))
         normalDistributionValues = numpy.random.normal(initMean, initSD, numberWeights)
@@ -128,3 +130,6 @@ class FC(object):
     def seeY(self, y):
         return y
 
+    def LoadWeights(self,weights):
+        self.W.set_value(weights[0],borrow=True)
+        self.b.set_value(weights[1],borrow=True)

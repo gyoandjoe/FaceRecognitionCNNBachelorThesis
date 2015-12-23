@@ -7,7 +7,7 @@ from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
 class ConvReluLayer(object):
-    def __init__(self, input, filter_shape, image_shape):
+    def __init__(self, input, filter_shape, image_shape,title):
         """
         :type rng: numpy.random.RandomState
         :param rng: a random number generator used to initialize weights
@@ -33,7 +33,7 @@ class ConvReluLayer(object):
         #El numero de feature maps deben coincidir tanto los especificados en image shape como en filter shape
         assert image_shape[1] == filter_shape[1]
 
-
+        self.title = title
         self.input = input
 
         # There are "num input feature maps(profundidad de volumen de entrada) * filter height * filter width"
@@ -50,7 +50,7 @@ class ConvReluLayer(object):
         initMean, initSD = 0, 0.01
         numberWeights= np.prod(filter_shape[0:])
         self.normalDistributionValues = np.random.normal(initMean, initSD, numberWeights)
-        print numberWeights
+        print "NumberOfWeight in ConvReluLayer: "+ str(numberWeights)
         self.normalDistributionValues = self.normalDistributionValues.reshape(filter_shape)
 
         #debug
@@ -102,6 +102,11 @@ class ConvReluLayer(object):
     def Relu(self,x):
         return theano.tensor.switch(x < 0, 0, x)
 
+
+    def LoadWeights(self,weights):
+
+        self.W.set_value(weights[0],borrow=True)
+        self.b.set_value(weights[1],borrow=True)
 
 
 

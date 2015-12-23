@@ -4,8 +4,7 @@ from Arquitecture import ConvLayer, ConvReluLayer
 
 
 class DualConvReluAndConvLayer(object):
-    def __init__(self, input, filter_shape, image_shape):
-
+    def __init__(self, input, filter_shape, image_shape,titleLayer0,titleLayer1):
         assert image_shape[1] == filter_shape[1]
         no_filters_l0 = filter_shape[0]
 
@@ -21,7 +20,8 @@ class DualConvReluAndConvLayer(object):
         self.layer0 = ConvReluLayer.ConvReluLayer(
             input=input,
             filter_shape=(no_filters_l0, D0, weight_filter, height_filter),
-            image_shape=(noimages, D0, heightimage, weightimage)
+            image_shape=(noimages, D0, heightimage, weightimage),
+            title=titleLayer0
         )
 
         nfilters_l1 = no_filters_l0 * 2
@@ -31,7 +31,8 @@ class DualConvReluAndConvLayer(object):
         self.layer1 = ConvLayer.ConvLayer(
             input=self.layer0.output,
             filter_shape=(nfilters_l1, d1, weight_filter, height_filter),
-            image_shape=(noimages, d1, heightimage, weightimage)
+            image_shape=(noimages, d1, heightimage, weightimage),
+            title=titleLayer1
         )
 
         self.output = self.layer1.output

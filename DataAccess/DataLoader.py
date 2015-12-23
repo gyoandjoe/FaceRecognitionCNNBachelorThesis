@@ -31,7 +31,7 @@ class DataLoader(object):
 
     def getDataSet(self,batchIndex):
         '''
-        Primero returna X y despues Y, retorna arrays de numpy
+        Primero retorna X y despues Y, retorna arrays de numpy
         '''
         fLoaded = file(os.path.join(self.basePath,self.dataSetBatchList[batchIndex][1]), 'rb')
         data = cPickle.load(fLoaded)

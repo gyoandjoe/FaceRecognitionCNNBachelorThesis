@@ -7,7 +7,7 @@ from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
 class ConvLayer(object):
-    def __init__(self, input, filter_shape, image_shape):
+    def __init__(self, input, filter_shape, image_shape,title):
         """
         :type rng: numpy.random.RandomState
         :param rng: a random number generator used to initialize weights
@@ -32,7 +32,7 @@ class ConvLayer(object):
         """
         #El numero de feature maps deben coincidir tanto los especificados en image shape como en filter shape
         assert image_shape[1] == filter_shape[1]
-
+        self.title=title
 
         self.input = input
 
@@ -101,7 +101,10 @@ class ConvLayer(object):
         self.input = input
 
 
-
+    def LoadWeights(self,weights):
+        #self.currentX.set_value(np.asarray(rawX,dtype=theano.config.floatX),borrow=True)
+        self.W.set_value(weights[0],borrow=True)
+        self.b.set_value(weights[1],borrow=True)
 
 
 
