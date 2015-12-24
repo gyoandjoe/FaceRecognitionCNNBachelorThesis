@@ -2,6 +2,7 @@ __author__ = 'Giovanni'
 import csv
 import cPickle
 import os
+import numpy as np
 
 class LogManager(object):
     def __init__(self, basePath, id_fileWeights, id_fileLossValues, id_file_csvPerformance, arquitecture):
@@ -22,8 +23,18 @@ class LogManager(object):
         fLoaded.close()
         return data[0], data[1]
 
-    def saveState_TrainProcessData(self, epoch, minibatch_index, best_validation_loss, best_iter, done_looping, patience):
+    def saveState_TrainValues(self,logId,values):
+        f = file(self.basePath + "\\TrainValues_" + self.id_fileWeights + "_"  + logId + '.pkl', 'w+b')
+        cPickle.dump(values, f, protocol=2)
+        f.close()
         return 0
+
+    def loadState_TrainValues(self, logId):
+        fLoaded = file(self.basePath + "\\TrainValues_" + self.id_fileWeights + "_"  + logId + '.pkl', 'rb')
+        data = cPickle.load(fLoaded)
+        fLoaded.close()
+        return data
+
 
     def savePerformanceInfo(self, LogId, cost,validation_loss,test_score,epoch, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience):
         csvPerformanceFile =  open(self.basePath+"\\PerformanceInfo_"+self.id_file_csvPerformance+'.csv', 'ab')
@@ -35,3 +46,4 @@ class LogManager(object):
         cPickle.dump(cost, f, protocol=2)
         f.close()
         csvPerformanceFile.close()
+

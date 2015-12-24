@@ -157,17 +157,10 @@ class FaceRecognition_CNN(object):
         self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
         self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
 
-    def Train(self,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000,withTestValidation = True):
+    def Train(self,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000,withTestValidation = True,backup_frequency=20000):
 
-        createBackup = False
-        if (restoreBackup == True):
-            restored_epoch = 0
-            restored_minibatch_index =0
-            restored_best_validation_loss=0
-            restored_best_iter=0
-            restored_done_looping=0
-            restored_patience=0
-            self.classifier.loadCNNWeights(logId)
+
+
 
         ############################################################################################################
         ############################################ TRAINING ######################################################
@@ -183,7 +176,7 @@ class FaceRecognition_CNN(object):
         patience_increase = 2  # wait this much longer when a new best is found
         improvement_threshold = 0.995  #(0 to 1) a relative improvement of this much is
                                            # considered significant
-        validation_frequency = validation_frequency #min(self.n_train_batches, patience / 2)
+        #validation_frequency = validation_frequency #min(self.n_train_batches, patience / 2)
                                           # go through this many
                                           # minibatche before checking the network
                                           # on the validation set; in this case we
@@ -196,24 +189,44 @@ class FaceRecognition_CNN(object):
         epoch = 0
         done_looping = False
 
+        if (restoreBackup == True):
+            #Loading values
+            restoredValues = self.classifier.GetAndLoadState(logId)
+
+            # 0 minibatchTrain_index_with_offset,
+            # 1 epoch,
+            # 2 minibatch_index,
+            # 3 best_validation_loss,
+            # 4 best_iter,
+            # 5 np.cast['int32'](done_looping),
+            # 6 patience
+            #assign values  to intermediate training values
+            restored_minibatchTrain_index_with_offset = restoredValues[0]
+            restored_epoch = restoredValues[1]
+            restored_minibatch_index =restoredValues[2]
+
+            #assign values directly to  training values
+            best_validation_loss=restoredValues[3]
+            best_iter=restoredValues[4]
+            done_looping = restoredValues[5]
+            patience = restoredValues[6]
 
         start_time = timeit.default_timer()
-
-
 
         while (epoch < n_epochs) and (not done_looping):
             epoch = epoch + 1
             minibatchTrain_index_with_offset=0
 
-            #if restoreBackup == True:
-            #    if epoch !=  restored_epoch:
-            #        continue
+            if restoreBackup == True:
+                if epoch !=  restored_epoch:
+                    continue
+
             t_test_start = time.time()
             for minibatch_index in xrange(self.n_train_batches):
 
-                #if restoreBackup == True:
-                #    if minibatch_index !=  restored_minibatch_index:
-                #        continue
+                if restoreBackup == True:
+                    if minibatch_index !=  restored_minibatch_index:
+                        continue
 
                 #No of training batches processed including epochs
                 iter = (epoch - 1) * self.n_train_batches + minibatch_index
@@ -221,13 +234,17 @@ class FaceRecognition_CNN(object):
                 self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(minibatch_index)
                 if (self.bmTrainSet.dataLoader.IsNewDataSet == True):
                     minibatchTrain_index_with_offset = 0
-                    #if (createBackup == True):
-                        #save epoch, minibatch_index, best_validation_loss, best_iter, done_looping, patience
 
-                #self.classifier.saveCNNWeights(str(epoch)+"_"+str(iter))
+                if (restoreBackup == True):
+                    minibatchTrain_index_with_offset = restored_minibatchTrain_index_with_offset
+
+                if (iter+1) % backup_frequency == 0:
+                    self.classifier.saveState(str(epoch)+"_"+str(iter),np.asarray([minibatchTrain_index_with_offset,epoch, minibatch_index, best_validation_loss, best_iter, np.cast['float64'](True), patience]))
+                    #self.classifier.saveState(str(epoch)+"_"+str(iter),np.asarray([minibatchTrain_index_with_offset,epoch, minibatch_index, best_validation_loss, best_iter, patience]))
+
+
                 #self.classifier.saveCNNWeights("Before")
                 cost_ij = self.train_model(minibatchTrain_index_with_offset)
-                #s= cost_ij.eval()
 
 
 
@@ -329,6 +346,7 @@ def experiment(state, channel):
 ############################################################################
 #print theano.config.optimizer
 
+
 fr = FaceRecognition_CNN(
     batch_size = 5,
     no_total_rows_in_trainSet=11700,
@@ -350,9 +368,10 @@ fr = FaceRecognition_CNN(
 fr.Train(
     restoreBackup = False,
     logId='1_0',
-    validation_frequency=15, #in training batches
+    validation_frequency=1000, #in training batches
     trainigin_info_frequency = 5, #in training batches
-    withTestValidation = False
+    withTestValidation = False,
+    backup_frequency=100
 )
 
 print ("OK")

@@ -50,7 +50,7 @@ class ConvReluLayer(object):
         initMean, initSD = 0, 0.01
         numberWeights= np.prod(filter_shape[0:])
         self.normalDistributionValues = np.random.normal(initMean, initSD, numberWeights)
-        print "NumberOfWeight in ConvReluLayer: "+ str(numberWeights)
+        print "NumberOfWeight in ConvReluLayer("+self.title+"): "+ str(numberWeights)
         self.normalDistributionValues = self.normalDistributionValues.reshape(filter_shape)
 
         #debug

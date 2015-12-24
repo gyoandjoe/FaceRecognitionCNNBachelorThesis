@@ -113,6 +113,14 @@ class FRCNN(object):
             title="FC"
         )
 
+    def saveState(self,logId, values):
+        self.saveTrainValues(logId, values)
+        self.saveCNNWeights(logId)
+
+    def saveTrainValues(self, logId, values):
+        self.LogManager.saveState_TrainValues(logId,values)
+
+
     def saveCNNWeights(self,logId):
         self.saveStandarCNNLayer(logId,self.Conv_11_12.layer0)
         self.saveStandarCNNLayer(logId,self.Conv_11_12.layer1)
@@ -132,6 +140,11 @@ class FRCNN(object):
         self.saveStandarCNNLayer(logId,self.FC)
 
         print "DataSet Weighs Saved"
+
+    def GetAndLoadState(self, logId):
+        self.loadCNNWeights(logId)
+        return self.LogManager.loadState_TrainValues(logId)
+
 
     def loadCNNWeights(self,logId):
         self.LoadStandarCNNLayer(logId,self.Conv_11_12.layer0)
