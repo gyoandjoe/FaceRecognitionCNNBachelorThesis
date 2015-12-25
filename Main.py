@@ -157,7 +157,7 @@ class FaceRecognition_CNN(object):
         self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
         self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
 
-    def Train(self,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000,withTestValidation = True,backup_frequency=20000):
+    def Train(self,n_epochs = 200,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000, withTestValidation = True, backup_frequency=20000, patience = 100000):
 
 
 
@@ -170,11 +170,11 @@ class FaceRecognition_CNN(object):
         #    LogManager.LogManager("","","E:\\dev\\TesisTest\\logManager\\testgraph.csv","ok")
 
 
-        n_epochs = 200
+
             # early-stopping parameters
-        patience = 10000  # look as this many examples regardless
+        #patience = 10000  # look as this many examples regardless
         patience_increase = 2  # wait this much longer when a new best is found
-        improvement_threshold = 0.995  #(0 to 1) a relative improvement of this much is
+        improvement_threshold = 0.595  #(0 to 1) a relative improvement of this much is
                                            # considered significant
         #validation_frequency = validation_frequency #min(self.n_train_batches, patience / 2)
                                           # go through this many
@@ -209,9 +209,11 @@ class FaceRecognition_CNN(object):
             best_validation_loss=restoredValues[3]
             best_iter=restoredValues[4]
             done_looping = restoredValues[5]
-            patience = restoredValues[6]
+            if patience==-1:
+                patience = restoredValues[6]
 
         start_time = timeit.default_timer()
+        t_test_start = time.time()
 
         while (epoch < n_epochs) and (not done_looping):
             epoch = epoch + 1
@@ -221,12 +223,15 @@ class FaceRecognition_CNN(object):
                 if epoch !=  restored_epoch:
                     continue
 
-            t_test_start = time.time()
+            if epoch != 0:
+                self.classifier.saveState(str(epoch)+"_justStarting",np.asarray([minibatchTrain_index_with_offset,epoch, 0, best_validation_loss, best_iter, np.cast['float64'](0), patience]))
+
             for minibatch_index in xrange(self.n_train_batches):
 
                 if restoreBackup == True:
                     if minibatch_index !=  restored_minibatch_index:
                         continue
+
 
                 #No of training batches processed including epochs
                 iter = (epoch - 1) * self.n_train_batches + minibatch_index
@@ -238,8 +243,8 @@ class FaceRecognition_CNN(object):
                 if (restoreBackup == True):
                     minibatchTrain_index_with_offset = restored_minibatchTrain_index_with_offset
 
-                if (iter+1) % backup_frequency == 0:
-                    self.classifier.saveState(str(epoch)+"_"+str(iter),np.asarray([minibatchTrain_index_with_offset,epoch, minibatch_index, best_validation_loss, best_iter, np.cast['float64'](True), patience]))
+                if ((iter+1) % backup_frequency == 0) and (not restoreBackup):
+                    self.classifier.saveState(str(epoch)+"_"+str(iter),np.asarray([minibatchTrain_index_with_offset,epoch, minibatch_index, best_validation_loss, best_iter, np.cast['float64'](done_looping), patience]))
                     #self.classifier.saveState(str(epoch)+"_"+str(iter),np.asarray([minibatchTrain_index_with_offset,epoch, minibatch_index, best_validation_loss, best_iter, patience]))
 
 
@@ -253,6 +258,7 @@ class FaceRecognition_CNN(object):
                     t_test_end = time.time()
                     seconds_test = t_test_end - t_test_start
                     print("Looping %d times(iters processed) took %f seconds(%i minutes) with %d examples processed, epoch %i, minibatch %i/%i" % (iter+1, seconds_test,seconds_test // 60, iter * self.batch_size, epoch, minibatch_index + 1, self.n_train_batches))
+
 
 
                 #Se evalua cada cierto numero de training batches
@@ -296,11 +302,16 @@ class FaceRecognition_CNN(object):
                                     (epoch, minibatch_index + 1, self.n_train_batches,
                                     test_score * 100.))
 
+                    print "Best Validation until now: " + str(best_validation_loss) + " in iter " + str(best_iter)
                     #Se guardan logs de performance
                     self.Lm.savePerformanceInfo(str(epoch)+"_"+str(iter), np.asarray(cost_ij),this_validation_loss,test_score,epoch,minibatch_index,iter,best_validation_loss,best_iter,done_looping,patience)
 
 
                 minibatchTrain_index_with_offset =  minibatchTrain_index_with_offset + 1
+
+                #Como ya todas las asignaciones con respecto de restoreBackup fueron hechas, en la siguiente iteracion ya no es necesario volver a cargar las variables de restore
+                if restoreBackup == True:
+                    restoreBackup = False
 
                 #Si sobrepasamos o llegamos a la paciencia maxima, detenemos el entrenamiento
                 if patience <= iter:
@@ -332,14 +343,7 @@ class FaceRecognition_CNN(object):
         self.minibatchTest_index_with_offset = self.minibatchTest_index_with_offset + 1
         return self.test_model(self.minibatchTest_index_with_offset -1)
 
-""""
-if __name__ == '__main__':
-    evaluate_lenet5()
 
-
-def experiment(state, channel):
-    evaluate_lenet5(state.learning_rate, dataset=state.dataset)
-"""
 
 ############################################################################
 ############################## TESTING #####################################
@@ -348,8 +352,9 @@ def experiment(state, channel):
 
 
 fr = FaceRecognition_CNN(
-    batch_size = 5,
-    no_total_rows_in_trainSet=11700,
+    learning_rate = 0.01,
+    batch_size = 10,
+    no_total_rows_in_trainSet=3900*30,
     no_total_rows_in_testSet= 3900,
     no_total_rows_in_validationSet=3900,
     no_rows_in_train_superBatch=3900,
@@ -358,22 +363,22 @@ fr = FaceRecognition_CNN(
     basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
     basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
     basePathForLog =  "E:\\dev\\TesisTest\\logManager",
-    PerformanceFileId="Testing",
-    weightsFileId="Testing"
+    PerformanceFileId="v0.1_test",
+    weightsFileId="v0.1_test"
     )
 
 
 
-
 fr.Train(
+    patience = 200000,
+    n_epochs = 30,
     restoreBackup = False,
-    logId='1_0',
+    logId='5_9989', #1_0
     validation_frequency=1000, #in training batches
-    trainigin_info_frequency = 5, #in training batches
+    trainigin_info_frequency = 40, #in training batches
     withTestValidation = False,
-    backup_frequency=100
+    backup_frequency=1000
 )
-
 print ("OK")
 """
 valTest = train_model()
