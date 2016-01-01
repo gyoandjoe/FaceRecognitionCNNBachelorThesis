@@ -75,6 +75,8 @@ class FC(object):
         # x is a matrix where row-j  represents input training sample-j
         # b is a vector where element-k represent the free parameter of hyper
         # plain-k
+        #el producto punto nos da un shape de (NoImages x 10575), con al funcion softmax, a cada peso(de 10575) por imagen,
+        # se le asigna una probabilidad con respecto de de los otros pesos de la misma imagen, asi podremos elegir el peso mas alto en y_pred
         self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + self.b)
 
         ## T.argmax() is used to return the index of maximum value along a given axis.
@@ -89,6 +91,7 @@ class FC(object):
 
     def negative_log_likelihood(self, y):
         """
+        checamos la probabilidad predecida para Y, despues sumamos todas las probabilidades y les sacamos el promedio de que tanto se equivoca
         Cost Function with mean and not sum
 
         Return the mean of the negative log-likelihood of the prediction

@@ -38,7 +38,7 @@ class DataLoader(object):
         fLoaded.close()
         dataX = data[0] #np.asarray(data[0])
         dataY = data[1] #np.asarray(data[1])
-
+        print "dataSet" + self.dataSetBatchList[batchIndex][1] + " --- LOADED!"
         return dataX, dataY
 
 

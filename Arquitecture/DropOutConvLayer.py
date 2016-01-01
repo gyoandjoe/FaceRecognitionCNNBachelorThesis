@@ -9,6 +9,7 @@ from theano.tensor.nnet import conv
 
 class DropOutConvLayer(object):
     def __init__(self, input, srng, image_shape, is_training,p):
+        #If p == 0 then all values in mask are 0, and if p == 1 then all values in mask are 1
         mask=srng.binomial(n=1,size=image_shape,p=p, dtype=theano.config.floatX)
         self.output = T.switch(T.neq(is_training, 0), np.multiply(input,mask), np.multiply(input,p))
 

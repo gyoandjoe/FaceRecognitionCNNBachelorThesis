@@ -39,11 +39,16 @@ class LogManager(object):
     def savePerformanceInfo(self, LogId, cost,validation_loss,test_score,epoch, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience):
         csvPerformanceFile =  open(self.basePath+"\\PerformanceInfo_"+self.id_file_csvPerformance+'.csv', 'ab')
         csvwriter = csv.writer(csvPerformanceFile, delimiter=',',quoting=csv.QUOTE_ALL)
-        costFileId = "PerformanceInfo_"+self.id_file_csvPerformance+ "_"+LogId
-        csvwriter.writerow([epoch,costFileId,validation_loss,test_score, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience ])
+        FileId = "PerformanceInfo_"+self.id_file_csvPerformance+ "_"+LogId
+        csvwriter.writerow([epoch,cost,FileId,validation_loss,test_score, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience ])
 
-        f = file(self.basePath + "\\" + costFileId + '.pkl', 'w+b')
+        f = file(self.basePath + "\\" + FileId + '.pkl', 'w+b')
         cPickle.dump(cost, f, protocol=2)
         f.close()
         csvPerformanceFile.close()
+
+    def saveLogPerformanceInfo(self, logContent):
+        LogFile =  open(self.basePath+"\\LogInfo_"+self.id_file_csvPerformance+'_log.csv', 'ab')
+        LogFile.writelines(logContent)
+        LogFile.close()
 

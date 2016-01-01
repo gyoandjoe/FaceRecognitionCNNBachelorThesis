@@ -30,6 +30,9 @@ img_input = x.reshape((batch_size, 1, 100, 100))
 #srng_droput =T.shared_randomstreams.RandomStreams(seed=12345)
 random_droput = np.random.RandomState(1234)
 rng_droput = T.shared_randomstreams.RandomStreams(random_droput.randint(999999))
+mask=rng_droput.binomial(n=1,size=(10,10),p=1, dtype=theano.config.floatX)
+dropTestF = theano.function([],mask)
+dropEval = dropTestF()
 
 n_train_batches = 592148 // batch_size
 n_test_batches = 197382 // batch_size
