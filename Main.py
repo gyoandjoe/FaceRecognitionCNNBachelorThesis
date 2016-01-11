@@ -361,7 +361,7 @@ fr = FaceRecognition_CNN(
     ActiveTest=False,
     learning_rate = 0.01, #1e-2 = 0.01
     batch_size = 20, #10
-    no_total_rows_in_trainSet=3900*70,
+    no_total_rows_in_trainSet=3900*177,
     no_total_rows_in_testSet= 3900,
     no_total_rows_in_validationSet=3900,
     no_rows_in_train_superBatch=3900,
@@ -380,7 +380,7 @@ fr.Train(
     patience = 200000,
     n_epochs = 30,
     restoreBackup = True,
-    logId='1_9499', #1_0
+    logId='1_33999', #1_0
     validation_frequency=500, #in training batches
     trainigin_info_frequency = 40, #in training batches
     withTestValidation = False,
