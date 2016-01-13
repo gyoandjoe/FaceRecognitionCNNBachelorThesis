@@ -20,7 +20,7 @@ class FaceRecognition_CNN(object):
 
     #los parametros de no_rows_in_train_superBatch, no_rows_in_test_superBatch, no_rows_in_validation_superBatch estan pensados
     #para ocupar entre todos mas de 2GB
-    def __init__(self,ActiveTest = True, learning_rate = 0.001,batch_size = 20, no_total_rows_in_trainSet=592148, no_total_rows_in_testSet=197382,no_total_rows_in_validationSet=197382,no_rows_in_train_superBatch=15600 ,no_rows_in_test_superBatch=5200,no_rows_in_validation_superBatch=5200,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\", basePathForLog =  "E:\\dev\\TesisTest\\logManager",PerformanceFileId="Testing", weightsFileId="Testing"):
+    def __init__(self,ActiveTest = True, modeEvaluation = False,testFileReference="TestRandReference.csv", learning_rate = 0.001, L2_reg = 0.0005,batch_size = 20, no_total_rows_in_trainSet=592148, no_total_rows_in_testSet=197382,no_total_rows_in_validationSet=197382,no_rows_in_train_superBatch=15600 ,no_rows_in_test_superBatch=5200,no_rows_in_validation_superBatch=5200,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\", basePathForLog =  "E:\\dev\\TesisTest\\logManager",PerformanceFileId="Testing", weightsFileId="Testing"):
 
         #self.no_total_rows_in_trainSet = 592148
         #self.no_total_rows_in_testSet = 197382
@@ -33,9 +33,9 @@ class FaceRecognition_CNN(object):
         self.no_total_rows_in_testSet = no_total_rows_in_testSet
         self.no_total_rows_in_validationSet = no_total_rows_in_validationSet
 
-        self.no_rows_in_train_superBatch =  no_rows_in_train_superBatch #7800
-        self.no_rows_in_test_superBatch = no_rows_in_test_superBatch #2600
-        self.no_rows_in_validation_superBatch = no_rows_in_validation_superBatch #2600
+        self.no_rows_in_train_superBatch =  no_rows_in_train_superBatch
+        self.no_rows_in_test_superBatch = no_rows_in_test_superBatch
+        self.no_rows_in_validation_superBatch = no_rows_in_validation_superBatch
 
         self.Lm = LogManager.LogManager.LogManager(
             basePath = basePathForLog,
@@ -64,7 +64,8 @@ class FaceRecognition_CNN(object):
         ############################################################################################################
         ########################################## Load DATASET ####################################################
         ############################################################################################################
-        self.LoadDataSet(basePathOfReferenceCSVs,basePathOfDataSet,ActiveTest)
+
+        self.LoadDataSet(basePathOfReferenceCSVs,basePathOfDataSet,testFileReference, ActiveTest,modeEvaluation)
         #############################################################################################################
         ########################################### Build MODEL #####################################################
         #############################################################################################################
@@ -78,7 +79,7 @@ class FaceRecognition_CNN(object):
             pdrop=0.4
         )
 
-        if(ActiveTest == True):
+        if(ActiveTest == True or modeEvaluation == True):
             self.test_model = theano.function(
                 inputs=[index],
                 outputs=self.classifier.FC.errors(y),
@@ -89,48 +90,48 @@ class FaceRecognition_CNN(object):
                 }
             )
 
-        self.validate_model = theano.function(
-            inputs=[index],
-            outputs=self.classifier.FC.errors(y),
-            givens={
-                x: self.bmValidationSet.currentX[index * self.batch_size: (index + 1) * self.batch_size,:,:],
-                y: T.cast(self.bmValidationSet.currentY[index * self.batch_size: (index + 1) * self.batch_size], 'int32'),
-                is_training: np.cast['int32'](0)
-            }
-        )
+        if modeEvaluation != True:
+            self.validate_model = theano.function(
+                inputs=[index],
+                outputs=self.classifier.FC.errors(y),
+                givens={
+                    x: self.bmValidationSet.currentX[index * self.batch_size: (index + 1) * self.batch_size,:,:],
+                    y: T.cast(self.bmValidationSet.currentY[index * self.batch_size: (index + 1) * self.batch_size], 'int32'),
+                    is_training: np.cast['int32'](0)
+                }
+            )
 
-        # create a list of all model parameters to be fit by gradient descent
-        cost = self.classifier.FC.negative_log_likelihood(y)
-        params = self.classifier.FC.params + self.classifier.Conv_51_52.layer0.params + self.classifier.Conv_51_52.layer1.params + self.classifier.Conv_41_42.layer0.params + self.classifier.Conv_41_42.layer1.params + self.classifier.Conv_31_32.layer0.params + self.classifier.Conv_31_32.layer1.params + self.classifier.Conv_21_22.layer0.params + self.classifier.Conv_21_22.layer1.params + self.classifier.Conv_11_12.layer0.params + self.classifier.Conv_11_12.layer1.params
+            # create a list of all model parameters to be fit by gradient descent
+            cost = self.classifier.FC.negative_log_likelihood(y) +L2_reg * self.classifier.FC.L2_sqr
 
-        # create a list of gradients for all model parameters
-        grads = T.grad(cost, params)
 
-        # train_model is a function that updates the model parameters by
-        # SGD Since this model has many parameters, it would be tedious to
-        # manually create an update rule for each model parameter. We thus
-        # create the updates list by automatically looping over all
-        # (params[i], grads[i]) pairs.
-        updates = [
-            (param_i, param_i - (learning_rate * grad_i))
-            for param_i, grad_i in zip(params, grads)
-        ]
+            params = self.classifier.FC.params + self.classifier.Conv_51_52.layer0.params + self.classifier.Conv_51_52.layer1.params + self.classifier.Conv_41_42.layer0.params + self.classifier.Conv_41_42.layer1.params + self.classifier.Conv_31_32.layer0.params + self.classifier.Conv_31_32.layer1.params + self.classifier.Conv_21_22.layer0.params + self.classifier.Conv_21_22.layer1.params + self.classifier.Conv_11_12.layer0.params + self.classifier.Conv_11_12.layer1.params
 
-        #img = Image.open(r'E:\dev\TesisFRwithCNN\TestRS\0000117\005-l.jpg')
-        #img = np.asarray(img, dtype=theano.config.floatX) / 256
-        #Use the Theano flag 'exception_verbosity=high'
+            # create a list of gradients for all model parameters
+            grads = T.grad(cost, params)
 
-        self.train_model = theano.function(
-            [index],
-              cost, #self.classifier.FC.p_y_given_x,#dropout.output
-              updates = updates,
-              givens = { x: self.bmTrainSet.currentX[index * self.batch_size: (index + 1) * self.batch_size,:,:],
-                y: T.cast(self.bmTrainSet.currentY[index * self.batch_size: (index + 1) * self.batch_size], 'int32'),
-                is_training: np.cast['int32'](1),
-              }
-              #on_unused_input='warn'
-              #allow_input_downcast=True
-        )
+            # train_model is a function that updates the model parameters by
+            # SGD Since this model has many parameters, it would be tedious to
+            # manually create an update rule for each model parameter. We thus
+            # create the updates list by automatically looping over all
+            # (params[i], grads[i]) pairs.
+            updates = [
+                (param_i, param_i - (learning_rate * grad_i))
+                for param_i, grad_i in zip(params, grads)
+            ]
+
+
+            self.train_model = theano.function(
+                [index],
+                  cost, #self.classifier.FC.p_y_given_x,#dropout.output
+                  updates = updates,
+                  givens = { x: self.bmTrainSet.currentX[index * self.batch_size: (index + 1) * self.batch_size,:,:],
+                    y: T.cast(self.bmTrainSet.currentY[index * self.batch_size: (index + 1) * self.batch_size], 'int32'),
+                    is_training: np.cast['int32'](1),
+                  }
+                  #on_unused_input='warn'
+                  #allow_input_downcast=True
+            )
 
     def InitializeDataVariables(self):
 
@@ -150,14 +151,30 @@ class FaceRecognition_CNN(object):
         if (self.no_total_rows_in_validationSet % self.batch_size != 0):
             self.n_valid_batches=self.n_valid_batches + 1
 
-    def LoadDataSet(self,basePathOfReferenceCSVs,basePathOfDataSet,ActiveTest = True ):
-        self.bmTrainSet = BatchManager(self.batch_size, self.no_rows_in_train_superBatch, basePathOfReferenceCSVs + "TrainRandReference.csv",basePathOfDataSet+"randTrain")
-        self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
-        if (ActiveTest == True):
-            self.bmTestSet = BatchManager(self.batch_size,self.no_rows_in_test_superBatch, basePathOfReferenceCSVs + "TestRandReference.csv",basePathOfDataSet+"randTest")
+    def LoadDataSet(self,basePathOfReferenceCSVs,basePathOfDataSet,testFileReference,ActiveTest = True,modeEvaluation = False, ):
+        if modeEvaluation != True:
+            self.bmTrainSet = BatchManager(self.batch_size, self.no_rows_in_train_superBatch, basePathOfReferenceCSVs + "TrainRandReference.csv",basePathOfDataSet+"randTrain")
+            self.bmTrainSet.UpdateCurrentXAdYByBatchIndex(0)
+            self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
+            self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
+
+        if (ActiveTest == True or modeEvaluation == True):
+            self.bmTestSet = BatchManager(self.batch_size,self.no_rows_in_test_superBatch, basePathOfReferenceCSVs + testFileReference,basePathOfDataSet+"randTest")
             self.bmTestSet.UpdateCurrentXAdYByBatchIndex(0)
-        self.bmValidationSet = BatchManager(self.batch_size,self.no_rows_in_validation_superBatch, basePathOfReferenceCSVs + "ValidRandReference.csv",basePathOfDataSet+"randValid")
-        self.bmValidationSet.UpdateCurrentXAdYByBatchIndex(0)
+
+
+    def EvaluateModel(self,logId="1_0"):
+        print "... Loading Weights"
+        restoredValues = self.classifier.GetAndLoadState(logId)
+        # test it on the test set
+        print "... Testing"
+        test_losses = [
+            self.do_Test(i)
+            for i in xrange(self.n_test_batches)
+        ]
+        test_score = np.mean(test_losses)
+        print('test error: %f ' % (test_score * 100.))
+
 
     def Train(self,n_epochs = 200,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000, withTestValidation = True, backup_frequency=20000, patience = 100000):
 
@@ -354,44 +371,3 @@ class FaceRecognition_CNN(object):
 ############################################################################
 ############################## TESTING #####################################
 ############################################################################
-#print theano.config.optimizer
-
-
-fr = FaceRecognition_CNN(
-    ActiveTest=False,
-    learning_rate = 0.01, #1e-2 = 0.01
-    batch_size = 20, #10
-    no_total_rows_in_trainSet=3900*177,
-    no_total_rows_in_testSet= 3900,
-    no_total_rows_in_validationSet=3900,
-    no_rows_in_train_superBatch=3900,
-    no_rows_in_test_superBatch=1300,
-    no_rows_in_validation_superBatch=1300,
-    basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
-    basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
-    basePathForLog =  "E:\\dev\\TesisTest\\logManager",
-    PerformanceFileId="v0.1_test_TODELETE",
-    weightsFileId="v0.1_test_TODELETE"
-    )
-
-
-
-fr.Train(
-    patience = 200000,
-    n_epochs = 30,
-    restoreBackup = True,
-    logId='1_33999', #1_0
-    validation_frequency=500, #in training batches
-    trainigin_info_frequency = 40, #in training batches
-    withTestValidation = False,
-    backup_frequency=500
-)
-print ("OK")
-"""
-valTest = train_model()
-nNoCeros=np.count_nonzero(valTest)
-print "Numeros diferente de Cero " + str(nNoCeros)
-sumna = np.sum(valTest)
-valTest2 = train_model()
-print ("...")
-"""

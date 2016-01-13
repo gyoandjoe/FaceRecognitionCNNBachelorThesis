@@ -85,6 +85,9 @@ class FC(object):
         # probability is maximal
         self.y_pred = T.argmax(self.p_y_given_x, axis=1)
         # end-snippet-1
+        self.L2_sqr = (
+                    (self.W ** 2).sum()
+                )
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -118,6 +121,7 @@ class FC(object):
     def negative_log_likelihoodTest(self,y):
         return -T.mean(T.log(self.p_y_given_x) [T.arange(y.shape[0]), y])
         #return T.log(self.p_y_given_x) # [T.arange(y.shape[0]), y]
+
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch
