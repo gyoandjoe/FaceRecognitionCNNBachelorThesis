@@ -20,7 +20,7 @@ class FaceRecognition_CNN(object):
 
     #los parametros de no_rows_in_train_superBatch, no_rows_in_test_superBatch, no_rows_in_validation_superBatch estan pensados
     #para ocupar entre todos mas de 2GB
-    def __init__(self,ActiveTest = True, modeEvaluation = False,testFileReference="TestRandReference.csv", learning_rate = 0.001, L2_reg = 0.0005,batch_size = 20, no_total_rows_in_trainSet=592148, no_total_rows_in_testSet=197382,no_total_rows_in_validationSet=197382,no_rows_in_train_superBatch=15600 ,no_rows_in_test_superBatch=5200,no_rows_in_validation_superBatch=5200,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\", basePathForLog =  "E:\\dev\\TesisTest\\logManager",PerformanceFileId="Testing", weightsFileId="Testing"):
+    def __init__(self,ActiveTest = True, modeEvaluation = False,testFileReference="TestRandReference.csv", learning_rate = 0.001, pdrop=0.4, L2_reg = 0.0005,batch_size = 20, no_total_rows_in_trainSet=592148, no_total_rows_in_testSet=197382,no_total_rows_in_validationSet=197382,no_rows_in_train_superBatch=15600 ,no_rows_in_test_superBatch=5200,no_rows_in_validation_superBatch=5200,basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\",basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random\\", basePathForLog =  "E:\\dev\\TesisTest\\logManager",PerformanceFileId="Testing", weightsFileId="Testing"):
 
         #self.no_total_rows_in_trainSet = 592148
         #self.no_total_rows_in_testSet = 197382
@@ -76,7 +76,7 @@ class FaceRecognition_CNN(object):
             img_input=img_input,
             noImages=self.batch_size,
             logManager = self.Lm,
-            pdrop=0.4
+            pdrop=pdrop
         )
 
         if(ActiveTest == True or modeEvaluation == True):
@@ -137,7 +137,7 @@ class FaceRecognition_CNN(object):
 
 
         self.minibatchValidation_index_with_offset = 0
-        self.minibatchTest_index_with_offset = 0
+        self.minibatchTest_index_with_offset = -1
 
         self.n_train_batches =  self.no_total_rows_in_trainSet // self.batch_size
         if (self.no_total_rows_in_trainSet % self.batch_size != 0):
@@ -173,7 +173,11 @@ class FaceRecognition_CNN(object):
             for i in xrange(self.n_test_batches)
         ]
         test_score = np.mean(test_losses)
-        print('test error: %f ' % (test_score * 100.))
+        #logContent = "%s | Looping %d times(iters) took %f seconds(%i minutes), %d examples processed, epoch %i, last cost %f, minibatch %i/%i" % (now, iter+1, seconds_test,seconds_test // 60, iter * self.batch_size, epoch, cost_ij,minibatch_index + 1, self.n_train_batches)
+        logContent ='%s | test error: %f ' % (self.Lm.id_file_csvPerformance, (test_score * 100.))
+        print(logContent)
+        self.Lm.saveLogPerformanceInfo(logContent + "\n")
+
 
 
     def Train(self,n_epochs = 200,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000, withTestValidation = True, backup_frequency=20000, patience = 100000):
@@ -363,8 +367,9 @@ class FaceRecognition_CNN(object):
         self.bmTestSet.UpdateCurrentXAdYByBatchIndex(indexBatch)
         if (self.bmTestSet.dataLoader.IsNewDataSet == True):
             self.minibatchTest_index_with_offset = 0
-        self.minibatchTest_index_with_offset = self.minibatchTest_index_with_offset + 1
-        return self.test_model(self.minibatchTest_index_with_offset -1)
+        else:
+            self.minibatchTest_index_with_offset = self.minibatchTest_index_with_offset + 1
+        return self.test_model(self.minibatchTest_index_with_offset)
 
 
 

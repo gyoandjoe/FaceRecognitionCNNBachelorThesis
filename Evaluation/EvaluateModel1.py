@@ -18,11 +18,14 @@ fr = Models.FaceRecognition_CNN.FaceRecognition_CNN(
     no_rows_in_validation_superBatch=1300,
     basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
     basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
-    basePathForLog =  "E:\\dev\\TesisTest\\logManager",
-    PerformanceFileId="v0.1_test_TODELETE",
-    weightsFileId="v0.1_test_TODELETE"
+    basePathForLog =  "E:\\dev\\TesisTest\\logManagerRemote",
+    #basePathForLog =  "E:\\dev\\TesisTest\\logManager",
+    #PerformanceFileId="v0.1_test_TODELETE_eval",
+    PerformanceFileId="Experimentv0.1WithL2_eval",
+    #weightsFileId="v0.1_test_TODELETE"
+    weightsFileId="Experimentv0.1WithL2"
     )
 
 fr.EvaluateModel(
-    logId= "1_33999"
+    logId= "5_58499"
 )
