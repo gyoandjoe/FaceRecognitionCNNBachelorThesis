@@ -55,6 +55,7 @@ class BatchManager(object):
             if (self.dataLoader.IsNewDataSet == True):
                 self.currentX.set_value(np.asarray(rawX,dtype=theano.config.floatX),borrow=True)
                 self.currentY.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
+                print ("raw DataSet Loaded in GPU Memory")
                 #self.currentYFloats.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
                 #self.currentY=T.cast(self.currentYFloats, 'int32')
 

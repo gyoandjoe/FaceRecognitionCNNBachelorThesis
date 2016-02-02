@@ -17,8 +17,11 @@ class LogManager(object):
         f.close()
         return 0
 
-    def loadState_CNNLayerWeights(self,title,logId):
-        fLoaded = file(self.basePath + "\\Weights_" + self.id_fileWeights + "_" + title + "_" + logId + '.pkl', 'rb')
+    def loadState_CNNLayerWeights(self,title,logId, fileWeights="None", basePath="None"):
+        if fileWeights != "None" and basePath != "None":
+            fLoaded = file(basePath + "\\Weights_" + fileWeights + "_" + title + "_" + logId + '.pkl', 'rb')
+        else:
+            fLoaded = file(self.basePath + "\\Weights_" + self.id_fileWeights + "_" + title + "_" + logId + '.pkl', 'rb')
         data = cPickle.load(fLoaded)
         fLoaded.close()
         return data[0], data[1]
@@ -45,6 +48,12 @@ class LogManager(object):
         f = file(self.basePath + "\\" + FileId + '.pkl', 'w+b')
         cPickle.dump(cost, f, protocol=2)
         f.close()
+        csvPerformanceFile.close()
+
+    def saveTrainingPerformanceInfo(self,time, epoch, cost,minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience):
+        csvPerformanceFile =  open(self.basePath+"\\PerformanceTrainInfo_"+self.id_file_csvPerformance+'.csv', 'ab')
+        csvwriter = csv.writer(csvPerformanceFile, delimiter=',',quoting=csv.QUOTE_ALL)
+        csvwriter.writerow([epoch,cost, minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience, time])
         csvPerformanceFile.close()
 
     def saveLogPerformanceInfo(self, logContent):

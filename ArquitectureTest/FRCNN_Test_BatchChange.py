@@ -65,6 +65,7 @@ dataXNp0 = train_models1(0)
 dataXNp1 = train_models1(1)
 dataXNp1_1 = train_models1(2)
 bmTrainSet.UpdateCurrentXAdYByBatchIndex(77)
+
 if (bmTrainSet.dataLoader.IsNewDataSet == True):
     print "Nuevos datos"
 else:

@@ -1,4 +1,8 @@
 __author__ = 'Giovanni'
+
+
+
+__author__ = 'Giovanni'
 import FaceRecognition_CNN
 #print theano.config.optimizer
 
@@ -8,7 +12,7 @@ fr = FaceRecognition_CNN.FaceRecognition_CNN(
     modeEvaluation = False,
     testFileReference="TestRandReference.csv",
     learning_rate = 1.1, #1e-2 = 0.01
-    L2_reg = 0.0005, #5e-4 = 0.0005,
+    L2_reg = 0.0005, #5e-4 = 0.0005
     batch_size = 10, #10 #65 #52
     no_total_rows_in_trainSet=3900*177,
     no_total_rows_in_testSet= 3900,
@@ -18,9 +22,9 @@ fr = FaceRecognition_CNN.FaceRecognition_CNN(
     no_rows_in_validation_superBatch=1300,
     basePathOfReferenceCSVs="E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
     basePathOfDataSet = "E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\Distribute and random_1gb\\",
-    basePathForLog =  "E:\\dev\\TesisTest\\logManager",
-    PerformanceFileId="v0.2_test_TODELETE",
-    weightsFileId="v0.2_test_TODELETE"
+    basePathForLog =  "E:\\dev\\TesisTest\\logManagerTest",
+    PerformanceFileId="justTesting",
+    weightsFileId="justTesting"
     )
 
 
@@ -28,12 +32,17 @@ fr = FaceRecognition_CNN.FaceRecognition_CNN(
 fr.Train(
     patience = 200000,
     n_epochs = 30,
-    restoreBackup = True,
-    logId='1_justStarting', #1_0
+    restoreBackup = False,
+    logOfWeightsForLoading="1_33999",
+    fileWeightsForLoading="v0.1_test_TODELETE", #weightsFileId
+    basePathForLoading="E:\\dev\\TesisTest\\logManager", #basePathForLog
+    logId='1_0', #1_0
     validation_frequency=500, #in training batches
-    trainigin_info_frequency = 40, #in training batches
+    trainigin_info_frequency = 20, #in training batches
     withTestValidation = False,
-    backup_frequency=500
+    backup_frequency=500,
+
+
 )
 print ("OK")
 """

@@ -177,10 +177,11 @@ class FaceRecognition_CNN(object):
         logContent ='%s | test error: %f ' % (self.Lm.id_file_csvPerformance, (test_score * 100.))
         print(logContent)
         self.Lm.saveLogPerformanceInfo(logContent + "\n")
+        #self.Lm.saveTrainingPerformanceInfo(now, epoch, cost_ij,minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience)
 
 
 
-    def Train(self,n_epochs = 200,restoreBackup = False, logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000, withTestValidation = True, backup_frequency=20000, patience = 100000):
+    def Train(self,n_epochs = 200,restoreBackup = False, logOfWeightsForLoading="None",fileWeightsForLoading="None", basePathForLoading="None",  logId="1_0",validation_frequency = 100, trainigin_info_frequency = 1000, withTestValidation = True, backup_frequency=20000, patience = 100000):
 
 
 
@@ -213,6 +214,9 @@ class FaceRecognition_CNN(object):
         done_looping = False
 
         if (restoreBackup == True):
+            if (logOfWeightsForLoading != "None"):
+                print "Error: only 1 set of weight is permitted"
+                return
             #Loading values
             restoredValues = self.classifier.GetAndLoadState(logId)
 
@@ -234,6 +238,9 @@ class FaceRecognition_CNN(object):
             done_looping = restoredValues[5]
             if patience==-1:
                 patience = restoredValues[6]
+
+        if (logOfWeightsForLoading != "None"):
+            self.classifier.LoadWeightFromLogId(logOfWeightsForLoading,fileWeightsForLoading, basePathForLoading)
 
         start_time = timeit.default_timer()
         t_test_start = time.time()
@@ -281,9 +288,10 @@ class FaceRecognition_CNN(object):
                     t_test_end = time.time()
                     seconds_test = t_test_end - t_test_start
                     now = time.strftime("%c")
-                    logContent = "%s | Looping %d times(iters) took %f seconds(%i minutes), %d examples processed, epoch %i, last cost %f, minibatch %i/%i" % (now, iter+1, seconds_test,seconds_test // 60, iter * self.batch_size, epoch, cost_ij,minibatch_index + 1, self.n_train_batches)
+                    logContent = "%s | Looping %d times(iters), took %i minutes, %d examples processed, epoch %i, last cost %f, minibatch %i/%i" % (now, iter+1, seconds_test // 60, iter * self.batch_size, epoch, cost_ij,minibatch_index + 1, self.n_train_batches)
                     print(logContent)
                     self.Lm.saveLogPerformanceInfo(logContent + "\n")
+                    self.Lm.saveTrainingPerformanceInfo(now, epoch, cost_ij,minibatch_index, iter, best_validation_loss, best_iter, done_looping, patience)
 
 
 
@@ -369,7 +377,9 @@ class FaceRecognition_CNN(object):
             self.minibatchTest_index_with_offset = 0
         else:
             self.minibatchTest_index_with_offset = self.minibatchTest_index_with_offset + 1
-        return self.test_model(self.minibatchTest_index_with_offset)
+        resultTest = self.test_model(self.minibatchTest_index_with_offset)
+        print "Index batch"+ str(indexBatch)+ "result: " + str(resultTest)
+        return resultTest
 
 
 

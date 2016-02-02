@@ -142,32 +142,34 @@ class FRCNN(object):
         print "DataSet Weighs Saved"
 
     def GetAndLoadState(self, logId):
-        self.loadCNNWeights(logId)
+        self.LoadWeightFromLogId(logId)
         return self.LogManager.loadState_TrainValues(logId)
 
+    def LoadWeightFromLogId(self, logId,fileWeights="None", basePath="None"):
+        self.loadCNNWeights(logId, fileWeights, basePath)
 
-    def loadCNNWeights(self,logId):
-        self.LoadStandarCNNLayer(logId,self.Conv_11_12.layer0)
-        self.LoadStandarCNNLayer(logId,self.Conv_11_12.layer1)
+    def loadCNNWeights(self,logId,fileWeights="None", basePath="None"):
+        self.LoadStandarCNNLayer(logId,self.Conv_11_12.layer0, fileWeights, basePath)
+        self.LoadStandarCNNLayer(logId,self.Conv_11_12.layer1, fileWeights, basePath)
 
-        self.LoadStandarCNNLayer(logId,self.Conv_21_22.layer0)
-        self.LoadStandarCNNLayer(logId,self.Conv_21_22.layer1)
+        self.LoadStandarCNNLayer(logId,self.Conv_21_22.layer0, fileWeights, basePath)
+        self.LoadStandarCNNLayer(logId,self.Conv_21_22.layer1, fileWeights, basePath)
 
-        self.LoadStandarCNNLayer(logId,self.Conv_31_32.layer0)
-        self.LoadStandarCNNLayer(logId,self.Conv_31_32.layer1)
+        self.LoadStandarCNNLayer(logId,self.Conv_31_32.layer0, fileWeights, basePath)
+        self.LoadStandarCNNLayer(logId,self.Conv_31_32.layer1, fileWeights, basePath)
 
-        self.LoadStandarCNNLayer(logId,self.Conv_41_42.layer0)
-        self.LoadStandarCNNLayer(logId,self.Conv_41_42.layer1)
+        self.LoadStandarCNNLayer(logId,self.Conv_41_42.layer0, fileWeights, basePath)
+        self.LoadStandarCNNLayer(logId,self.Conv_41_42.layer1, fileWeights, basePath)
 
-        self.LoadStandarCNNLayer(logId,self.Conv_51_52.layer0)
-        self.LoadStandarCNNLayer(logId,self.Conv_51_52.layer1)
+        self.LoadStandarCNNLayer(logId,self.Conv_51_52.layer0, fileWeights, basePath)
+        self.LoadStandarCNNLayer(logId,self.Conv_51_52.layer1, fileWeights, basePath)
 
-        self.LoadStandarCNNLayer(logId,self.FC)
+        self.LoadStandarCNNLayer(logId,self.FC, fileWeights, basePath)
 
         print "DataSet Weighs Loaded"
 
-    def LoadStandarCNNLayer(self,logId,convStandarCNNLayer):
-        rawData = self.LogManager.loadState_CNNLayerWeights(convStandarCNNLayer.title,logId)
+    def LoadStandarCNNLayer(self,logId,convStandarCNNLayer,fileWeights="None", basePath="None"):
+        rawData = self.LogManager.loadState_CNNLayerWeights(convStandarCNNLayer.title,logId,fileWeights, basePath)
         convStandarCNNLayer.LoadWeights( (np.asarray(rawData[0],dtype=theano.config.floatX),np.asarray(rawData[1],dtype=theano.config.floatX)))
 
     def saveStandarCNNLayer(self, logid, convStandarCNNLayer):
