@@ -1,4 +1,5 @@
 import cPickle
+import random
 
 __author__ = 'Giovanni'
 import numpy as np
@@ -6,13 +7,26 @@ import os
 
 
 class DataLoader(object):
-    def __init__(self, fileReferenceData, basePath):
+    def __init__(self, fileReferenceData, basePath,withshufledRows = False):
         self.currentBatchIndexLoded = -1
         self.basePath= basePath
-        self.dataSetBatchList = np.loadtxt( fileReferenceData,delimiter=',', dtype='str',usecols = (0,1))#Matriz con dos columnas, el index, y el nombre del archivo
-        self.no_total_batches =  self.dataSetBatchList.shape[0]  #Calculado del archivo
+        self.fileReferenceData = fileReferenceData
+        self.withshufledRows = withshufledRows
         self.currentDataSet = None
         self.IsNewDataSet = True
+        self.WithshufledRows = withshufledRows
+        self.dataSetBatchList = np.loadtxt( self.fileReferenceData,delimiter=',', dtype='str',usecols = (0,1))#Matriz con dos columnas, el index, y el nombre del archivo
+        self.no_total_batches =  self.dataSetBatchList.shape[0]  #Calculado del archivo
+        self.NoBatchesLoaded = 0
+        self.BatchIndexes = range(self.no_total_batches)
+        self.getFilesOfReference()
+
+
+    def getFilesOfReference(self):
+
+        if self.withshufledRows == True:
+            random.shuffle(self.BatchIndexes)
+            print ("Shuffled DataSet")
 
     def getDataSetByBatchIndex(self, batchIndex_requested):
         self.IsNewDataSet = False
@@ -33,12 +47,21 @@ class DataLoader(object):
         '''
         Primero retorna X y despues Y, retorna arrays de numpy
         '''
+        if (self.NoBatchesLoaded == self.no_total_batches):
+            self.NoBatchesLoaded = 0
+            self.getFilesOfReference()
+
         fLoaded = file(os.path.join(self.basePath,self.dataSetBatchList[batchIndex][1]), 'rb')
+
         data = cPickle.load(fLoaded)
         fLoaded.close()
+
+        #if self.WithshufledRows == True:
+            #Debemos crear un array de 0 hasta n examples in data, despues desordenarlo y usarlo como referencia para reordenar daaX y dataY
         dataX = data[0] #np.asarray(data[0])
         dataY = data[1] #np.asarray(data[1])
-        print "raw dataSet" + self.dataSetBatchList[batchIndex][1] + " --- LOADED!"
+        self.NoBatchesLoaded = self.NoBatchesLoaded + 1
+        print "raw dataSet" + self.dataSetBatchList[self.BatchIndexes[batchIndex]][1] + " --- LOADED!"
         return dataX, dataY
 
 

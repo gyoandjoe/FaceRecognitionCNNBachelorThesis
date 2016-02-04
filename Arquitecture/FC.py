@@ -16,7 +16,7 @@ class FC(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out,title):
+    def __init__(self, input, n_in, n_out,title,initSD):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
@@ -33,7 +33,7 @@ class FC(object):
 
         """
         self.title=title
-        initMean, initSD = 0, 0.01
+        initMean  = 0
         numberWeights= numpy.prod((n_in,n_out))
         normalDistributionValues = numpy.random.normal(initMean, initSD, numberWeights)
         self.normalDistributionValues = normalDistributionValues.reshape((n_in,n_out))

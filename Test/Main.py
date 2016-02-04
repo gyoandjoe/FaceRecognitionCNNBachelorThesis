@@ -1,4 +1,4 @@
-
+import random
 
 __author__ = 'Giovanni'
 import sys
@@ -13,6 +13,22 @@ from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
 
 theano.config.exception_verbosity='high'
+
+
+file = open("newfile.txt", "w")
+file.write("0.000159")
+file.close()
+
+file2 = open('newfile.txt', 'r')
+varrecupered = float(file2.read()) #np.cast['float'](1)(file.read())
+file2.close()
+varrecuperedassiged = varrecupered + 5.1
+
+items = range(10)
+resulrand1 = random.shuffle(items)
+resulrand2 = random.shuffle(items)
+resulrand3 = random.shuffle(items)
+
 ############################################################################
 ############################# Variables definition #########################
 ############################################################################
@@ -42,11 +58,11 @@ n_valid_batches = 197382 // batch_size
 ############################################################################
 
 bmTrainSet = BatchManager(batch_size,7800,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\TrainRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randTrain")
-bmTrainSet.UpdateCurrentXAdY(0)
+bmTrainSet.UpdateCurrentXAndY(0)
 bmTestSet = BatchManager(batch_size,2600,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\TestRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randTest")
-bmTestSet.UpdateCurrentXAdY(0)
+bmTestSet.UpdateCurrentXAndY(0)
 bmValidationSet = BatchManager(batch_size,2600,"E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\ValidRandReference.csv","E:\\My Documents\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\Distribute and random\\randValid")
-bmValidationSet.UpdateCurrentXAdY(0)
+bmValidationSet.UpdateCurrentXAndY(0)
 
 
 #############################################################################

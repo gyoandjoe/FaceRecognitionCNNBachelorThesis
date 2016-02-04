@@ -7,7 +7,7 @@ from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
 class ConvReluLayer(object):
-    def __init__(self, input, filter_shape, image_shape,title):
+    def __init__(self, input, filter_shape, image_shape,title,initSD):
         """
         :type rng: numpy.random.RandomState
         :param rng: a random number generator used to initialize weights
@@ -47,10 +47,10 @@ class ConvReluLayer(object):
 
 
         # mean and standard deviation
-        initMean, initSD = 0, 0.01
+        initMean = 0
         numberWeights= np.prod(filter_shape[0:])
         self.normalDistributionValues = np.random.normal(initMean, initSD, numberWeights)
-        print "NumberOfWeight in ConvReluLayer("+self.title+"): "+ str(numberWeights)
+        print "Number Of Weights in ConvReluLayer("+self.title+"): "+ str(numberWeights)
         self.normalDistributionValues = self.normalDistributionValues.reshape(filter_shape)
 
         #debug
@@ -100,7 +100,7 @@ class ConvReluLayer(object):
         self.input = input
 
     def Relu(self,x):
-        return theano.tensor.switch(x < 0, 0, x)
+        return theano.tensor.switch(x > 0, x, 0)
 
 
     def LoadWeights(self,weights):

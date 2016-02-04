@@ -110,7 +110,8 @@ class FRCNN(object):
             input=self.dropout.output,
             n_in=320,
             n_out=10575,
-            title="FC"
+            title="FC",
+            initSD=0.001
         )
 
     def saveState(self,logId, values):

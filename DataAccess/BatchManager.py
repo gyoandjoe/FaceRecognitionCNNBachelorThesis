@@ -6,7 +6,7 @@ import LoadDataFunctions
 import numpy as np
 
 class BatchManager(object):
-    def __init__(self, batchSize, superBatchSize,fileReferenceData, basePath):
+    def __init__(self, batchSize, superBatchSize,fileReferenceData, basePath,randomEveryEpoch=False):
         """
         :param batchSize: numero de registros por cada batch
         :param superBatchSize: numero de registros por cada super Batch
@@ -22,11 +22,12 @@ class BatchManager(object):
         #self.currentYFloats = None
         self.currentY = None
 
+
         #cada noValidBatchesInSuperBatch se tienen que cargar un nuevo dataSet
         self.noValidBatchesInSuperBatch = superBatchSize // batchSize
         if ((superBatchSize % batchSize) != 0):
             self.noValidBatchesInSuperBatch=self.noValidBatchesInSuperBatch + 1
-        self.dataLoader = DataLoader.DataLoader(fileReferenceData, basePath)
+        self.dataLoader = DataLoader.DataLoader(fileReferenceData, basePath,randomEveryEpoch)
         self.NoTotalSuperBatches = self.dataLoader.no_total_batches
         self.noTotalBatchesForAllSuperBatches=self.noValidBatchesInSuperBatch * self.dataLoader.no_total_batches
 
@@ -38,16 +39,12 @@ class BatchManager(object):
 
         if (indexBatch < self.noTotalBatchesForAllSuperBatches):
             superBatchIndexRequested = indexBatch // self.noValidBatchesInSuperBatch
-            self.UpdateCurrentXAdY(superBatchIndexRequested)
-            #noBatchesUntilSuperBatchRequested = superBatchIndexRequested * self.noValidBatchesInSuperBatch
-            #offsetBatchIndex = indexBatch - noBatchesUntilSuperBatchRequested
-            #self.batch = self.getTensorDataSet(superBatchIndexRequested)
-            #batch =(batch[0],batch[1][offsetBatchIndex * self.batchSize: (offsetBatchIndex + 1) * self.batchSize])
+            self.UpdateCurrentXAndY(superBatchIndexRequested)
         else:
             print "Index batch requested out of range"
 
 
-    def UpdateCurrentXAdY(self, indexSuperBatch):
+    def UpdateCurrentXAndY(self, indexSuperBatch):
         if (self.currentX == None and self.currentY ==None):
             self.currentX,self.currentY=LoadDataFunctions.just_shared_dataset(self.dataLoader.getDataSetByBatchIndex(indexSuperBatch))
         else:
@@ -56,8 +53,6 @@ class BatchManager(object):
                 self.currentX.set_value(np.asarray(rawX,dtype=theano.config.floatX),borrow=True)
                 self.currentY.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
                 print ("raw DataSet Loaded in GPU Memory")
-                #self.currentYFloats.set_value(np.asarray(rawY,dtype=theano.config.floatX),borrow=True)
-                #self.currentY=T.cast(self.currentYFloats, 'int32')
 
     def getTensorDataSet(self, superBatchIndexRequested):
         '''

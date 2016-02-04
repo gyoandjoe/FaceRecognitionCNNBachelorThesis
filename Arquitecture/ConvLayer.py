@@ -7,7 +7,7 @@ from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
 class ConvLayer(object):
-    def __init__(self, input, filter_shape, image_shape,title):
+    def __init__(self, input, filter_shape, image_shape,title,initSD):
         """
         :type rng: numpy.random.RandomState
         :param rng: a random number generator used to initialize weights
@@ -47,7 +47,7 @@ class ConvLayer(object):
 
 
         # mean and standard deviation
-        initMean, initSD = 0, 0.01
+        initMean = 0
         numberWeights= np.prod(filter_shape[0:])
         self.normalDistributionValues = np.random.normal(initMean, initSD, numberWeights)
         print "NumberOfWeight in ConvLayer("+self.title+"): "+ str(numberWeights)

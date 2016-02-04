@@ -5,6 +5,15 @@ import numpy as np
 
 from Arquitecture import ConvReluLayer
 
+
+initMean, initSD = 0, 0.000001
+
+normalDistributionValues1 = np.random.normal(initMean, initSD, 10)
+normalDistributionValues2 = np.random.normal(initMean, initSD, 10)
+normalDistributionValues3 = np.random.normal(initMean, initSD, 10)
+suma = normalDistributionValues3.sum()
+prom = normalDistributionValues3.sum() / 10
+
 fLoaded = file('E:\\My Documents\\BUAP\\Titulacion\\Tesis\\Resources\\Data Sets\\CASIA Processing\\Results\\RANDOM\\CASIAFULL_R_0.pkl', 'rb')
 setloaded = cPickle.load(fLoaded)
 fLoaded.close()

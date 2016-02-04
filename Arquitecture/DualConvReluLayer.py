@@ -22,7 +22,8 @@ class DualConvReluLayer(object):
             input=input,
             filter_shape=(no_filters_l0, D0, weight_filter, height_filter),
             image_shape=(noimages, D0, heightimage, weightimage),
-            title=titleLayer0
+            title=titleLayer0,
+            initSD=0.001
         )
 
         nfilters_l1 = no_filters_l0 * 2
@@ -33,7 +34,8 @@ class DualConvReluLayer(object):
             input=self.layer0.output,
             filter_shape=(nfilters_l1, d1, weight_filter, height_filter),
             image_shape=(noimages, d1, heightimage, weightimage),
-            title=titleLayer1
+            title=titleLayer1,
+            initSD=0.001
         )
 
         self.output = self.layer1.output
