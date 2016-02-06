@@ -21,6 +21,7 @@ fr = FaceRecognition_CNN.FaceRecognition_CNN(
     PerformanceFileId="v0.3_test_TODELETE",
     weightsFileId="v0.3_test_TODELETE",
     randomEveryEpoch=True,
+
     )
 
 

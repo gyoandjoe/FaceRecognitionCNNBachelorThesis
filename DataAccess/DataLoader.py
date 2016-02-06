@@ -1,6 +1,6 @@
 import cPickle
 import random
-
+import sklearn.utils
 __author__ = 'Giovanni'
 import numpy as np
 import os
@@ -56,12 +56,14 @@ class DataLoader(object):
         data = cPickle.load(fLoaded)
         fLoaded.close()
 
-        #if self.WithshufledRows == True:
-            #Debemos crear un array de 0 hasta n examples in data, despues desordenarlo y usarlo como referencia para reordenar daaX y dataY
+
         dataX = data[0] #np.asarray(data[0])
         dataY = data[1] #np.asarray(data[1])
         self.NoBatchesLoaded = self.NoBatchesLoaded + 1
         print "raw dataSet" + self.dataSetBatchList[self.BatchIndexes[batchIndex]][1] + " --- LOADED!"
+
+        if self.withshufledRows == True:
+            dataX, dataY = sklearn.utils.shuffle(dataX, dataY)
         return dataX, dataY
 
 

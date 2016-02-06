@@ -8,21 +8,46 @@ import timeit
 import theano
 import theano.tensor as T
 import numpy as np
-
+from sklearn.utils import shuffle
 from DataAccess.BatchManager import BatchManager
 from Arquitecture import FRCNN
 
 theano.config.exception_verbosity='high'
 
 
-file = open("newfile.txt", "w")
-file.write("0.000159")
-file.close()
 
-file2 = open('newfile.txt', 'r')
-varrecupered = float(file2.read()) #np.cast['float'](1)(file.read())
-file2.close()
-varrecuperedassiged = varrecupered + 5.1
+
+
+
+np.random.seed(2)
+lista =  np.arange(250000).reshape((100, 50,50))
+lista2 =  np.arange(100)
+
+X, y = shuffle(lista, lista2)
+X, y = shuffle(lista, lista2)
+
+def shuffle_in_unison_scary(a, b):
+    rng_state = np.random.get_state()
+    np.random.shuffle(a)
+    np.random.set_state(rng_state)
+    np.random.shuffle(b)
+
+#shuffle_in_unison_scary(lista,lista2)
+
+
+
+np.random.shuffle(lista)
+np.random.shuffle(lista2)
+
+
+#file = open("newfile.txt", "w")
+#file.write("0.000159")
+#file.close()
+
+#file2 = open('newfile.txt', 'r')
+#varrecupered = float(file2.read()) #np.cast['float'](1)(file.read())
+#file2.close()
+#varrecuperedassiged = varrecupered + 5.1
 
 items = range(10)
 resulrand1 = random.shuffle(items)
